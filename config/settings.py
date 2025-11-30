@@ -6,7 +6,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production-12345')
+SECRET_KEY = os.getenv('SECRET_KEY', '')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,moysklad_integration').split(',')
 
@@ -26,6 +26,11 @@ INSTALLED_APPS = [
 
     # Local apps
     'integration',
+    'catalog',
+    'products',
+    'cards',
+    'pricing',
+    'inventory',
 ]
 
 MIDDLEWARE = [
