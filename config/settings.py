@@ -26,11 +26,13 @@ INSTALLED_APPS = [
 
     # Local apps
     'integration',
-    'catalog',
+    'references',
     'products',
     'cards',
     'pricing',
     'inventory',
+    'scraping',
+    'mapping',
 
     #legacy
     'legacy'

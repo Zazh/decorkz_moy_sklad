@@ -1,57 +1,52 @@
 # cards/admin.py
 
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import ProductCard, ProductCardImage, ProductCardAttribute
-
-
-class ProductLinkFilter(admin.SimpleListFilter):
-    title = 'Связь с товаром'
-    parameter_name = 'product_link'
-
-    def lookups(self, request, model_admin):
-        return (
-            ('linked', 'Связанные'),
-            ('unlinked', 'Без связи'),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() == 'linked':
-            return queryset.filter(product__isnull=False)
-        if self.value() == 'unlinked':
-            return queryset.filter(product__isnull=True)
-        return queryset
 
 
 class ProductCardImageInline(admin.TabularInline):
     model = ProductCardImage
     extra = 1
+    fields = ['image', 'image_preview', 'alt', 'is_main', 'sort_order']
+    readonly_fields = ['image_preview']
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 50px;"/>', obj.image.url)
+        return "—"
+
+    image_preview.short_description = "Превью"
 
 
 class ProductCardAttributeInline(admin.TabularInline):
     model = ProductCardAttribute
     extra = 1
+    fields = ['attribute', 'value', 'sort_order']
     autocomplete_fields = ['attribute']
 
 
 @admin.register(ProductCard)
 class ProductCardAdmin(admin.ModelAdmin):
-    list_display = ['sku', 'title', 'product', 'is_default', 'is_active', 'source', 'has_product']
-    list_filter = [ProductLinkFilter, 'is_active', 'is_default', 'source']
-    search_fields = ['sku', 'title', 'product__name']
-    prepopulated_fields = {'slug': ('title',)}
-    autocomplete_fields = ['product']
+    list_display = [
+        'title',
+        'source',
+        'images_count',
+        'attributes_count',
+        'has_product',
+        'updated_at'
+    ]
+    list_filter = ['source']
+    search_fields = ['title', 'description']
     readonly_fields = ['created_at', 'updated_at']
     inlines = [ProductCardImageInline, ProductCardAttributeInline]
 
     fieldsets = (
-        ('Основное', {
-            'fields': ('product', 'sku', 'title', 'slug')
-        }),
         ('Контент', {
-            'fields': ('short_description', 'description', 'youtube_url')
+            'fields': ('title', 'short_description', 'description')
         }),
-        ('Настройки', {
-            'fields': ('is_default', 'is_active', 'sort_order', 'source')
+        ('Источник', {
+            'fields': ('source', 'scraped_source_url')
         }),
         ('Служебное', {
             'fields': ('created_at', 'updated_at'),
@@ -59,6 +54,20 @@ class ProductCardAdmin(admin.ModelAdmin):
         }),
     )
 
-    @admin.display(boolean=True, description='Связан')
+    def images_count(self, obj):
+        count = obj.images.count()
+        return count if count > 0 else "—"
+
+    images_count.short_description = "Фото"
+
+    def attributes_count(self, obj):
+        count = obj.attributes.count()
+        return count if count > 0 else "—"
+
+    attributes_count.short_description = "Атрибуты"
+
     def has_product(self, obj):
-        return obj.product is not None
+        return hasattr(obj, 'product') and obj.product is not None
+
+    has_product.boolean = True
+    has_product.short_description = "Привязан"

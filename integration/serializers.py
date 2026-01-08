@@ -1,20 +1,32 @@
+# integration/serializers.py
+
 from rest_framework import serializers
-from .models import Product, ProductCategory, Order, SyncLog
+from .models import MoySkladProduct, MoySkladCategory, MoySkladBrand, MoySkladOrder, SyncLog
 
-class ProductSerializer(serializers.ModelSerializer):
+
+class MoySkladProductSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Product
+        model = MoySkladProduct
         fields = '__all__'
 
-class ProductCategorySerializer(serializers.ModelSerializer):
+
+class MoySkladCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductCategory
+        model = MoySkladCategory
         fields = '__all__'
 
-class OrderSerializer(serializers.ModelSerializer):
+
+class MoySkladBrandSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Order
+        model = MoySkladBrand
         fields = '__all__'
+
+
+class MoySkladOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MoySkladOrder
+        fields = '__all__'
+
 
 class SyncLogSerializer(serializers.ModelSerializer):
     class Meta:

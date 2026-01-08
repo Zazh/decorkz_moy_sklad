@@ -1,73 +1,111 @@
+# integration/models.py
+
 from django.db import models
 
 
-class Product(models.Model):
-    """Модель для хранения товаров из МойСклад"""
-    
-    moysklad_id = models.CharField(max_length=255, unique=True, verbose_name='ID в МойСклад')
-    name = models.CharField(max_length=500, verbose_name='Название')
-    code = models.CharField(max_length=255, blank=True, null=True, verbose_name='Код')
-    article = models.CharField(max_length=255, blank=True, null=True, verbose_name='Артикул')
+class MoySkladProduct(models.Model):
+    """Сырые данные товара из МойСклад"""
 
-    description = models.TextField(blank=True, null=True, verbose_name='Описание')
-    
-    price = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name='Цена')
-    cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name='Себестоимость')
-    
-    stock = models.IntegerField(default=0, verbose_name='Остаток')
-    reserve = models.IntegerField(default=0, verbose_name='Резерв')
-    
-    is_active = models.BooleanField(default=True, verbose_name='Активен')
-    archived = models.BooleanField(default=False, verbose_name='В архиве')
-    
-    external_code = models.CharField(max_length=255, blank=True, null=True, verbose_name='Внешний код')
-    
-    barcode = models.CharField(max_length=255, blank=True, null=True, verbose_name='Штрихкод')
-    
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлено')
-    
-    last_sync = models.DateTimeField(auto_now=True, verbose_name='Последняя синхронизация')
-    
-    raw_data = models.JSONField(blank=True, null=True, verbose_name='Полные данные из API')
-    
+    moysklad_id = models.CharField("ID в МойСклад", max_length=255, unique=True)
+    name = models.CharField("Название", max_length=500)
+    code = models.CharField("Код", max_length=255, blank=True, null=True)
+    article = models.CharField("Артикул", max_length=255, blank=True, null=True)
+    description = models.TextField("Описание", blank=True, null=True)
+
+    # Цены (сырые, в копейках или как пришло)
+    price = models.DecimalField("Цена", max_digits=12, decimal_places=2, default=0)
+    cost = models.DecimalField("Себестоимость", max_digits=12, decimal_places=2, default=0)
+
+    # Остатки (сырые)
+    stock = models.IntegerField("Остаток", default=0)
+    reserve = models.IntegerField("Резерв", default=0)
+
+    # Статусы
+    is_active = models.BooleanField("Активен", default=True)
+    archived = models.BooleanField("В архиве", default=False)
+
+    # Доп. поля
+    external_code = models.CharField("Внешний код", max_length=255, blank=True, null=True)
+    barcode = models.CharField("Штрихкод", max_length=255, blank=True, null=True)
+    path_name = models.CharField("Путь в МойСклад", max_length=500, blank=True)
+
+    # Сырые данные
+    raw_data = models.JSONField("Полные данные из API", blank=True, null=True)
+
+    # Timestamps
+    created_at = models.DateTimeField("Создано", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
+    last_sync = models.DateTimeField("Последняя синхронизация", auto_now=True)
+
     class Meta:
-        verbose_name = 'Товар'
-        verbose_name_plural = 'Товары'
+        verbose_name = "Товар МойСклад"
+        verbose_name_plural = "Товары МойСклад"
         ordering = ['-updated_at']
+        db_table = 'integration_moysklad_product'
         indexes = [
             models.Index(fields=['moysklad_id']),
             models.Index(fields=['article']),
             models.Index(fields=['code']),
         ]
-    
+
     def __str__(self):
         return f"{self.name} ({self.article or self.code or self.moysklad_id})"
 
 
-class ProductCategory(models.Model):
-    """Модель для категорий товаров"""
-    
-    moysklad_id = models.CharField(max_length=255, unique=True, verbose_name='ID в МойСклад')
-    name = models.CharField(max_length=255, verbose_name='Название')
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, 
-                               related_name='children', verbose_name='Родительская категория')
-    
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлено')
-    
+class MoySkladCategory(models.Model):
+    """Категории (папки товаров) из МойСклад"""
+
+    moysklad_id = models.CharField("ID в МойСклад", max_length=255, unique=True)
+    name = models.CharField("Название", max_length=255)
+    path_name = models.CharField("Полный путь", max_length=500, blank=True)
+
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True, blank=True,
+        related_name='children',
+        verbose_name="Родительская категория"
+    )
+
+    raw_data = models.JSONField("Полные данные из API", blank=True, null=True)
+
+    created_at = models.DateTimeField("Создано", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
+
     class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
+        verbose_name = "Категория МойСклад"
+        verbose_name_plural = "Категории МойСклад"
         ordering = ['name']
-    
+        db_table = 'integration_moysklad_category'
+
+    def __str__(self):
+        return self.path_name or self.name
+
+
+class MoySkladBrand(models.Model):
+    """Бренды из атрибутов МойСклад"""
+
+    name = models.CharField("Название", max_length=255, unique=True)
+
+    # Сколько товаров с этим брендом
+    products_count = models.IntegerField("Кол-во товаров", default=0)
+
+    created_at = models.DateTimeField("Создано", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
+
+    class Meta:
+        verbose_name = "Бренд МойСклад"
+        verbose_name_plural = "Бренды МойСклад"
+        ordering = ['name']
+        db_table = 'integration_moysklad_brand'
+
     def __str__(self):
         return self.name
 
 
-class Order(models.Model):
-    """Модель для заказов"""
-    
+class MoySkladOrder(models.Model):
+    """Заказы из МойСклад"""
+
     STATUS_CHOICES = [
         ('new', 'Новый'),
         ('confirmed', 'Подтвержден'),
@@ -76,76 +114,76 @@ class Order(models.Model):
         ('delivered', 'Доставлен'),
         ('cancelled', 'Отменен'),
     ]
-    
-    moysklad_id = models.CharField(max_length=255, unique=True, verbose_name='ID в МойСклад')
-    number = models.CharField(max_length=255, verbose_name='Номер заказа')
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new', verbose_name='Статус')
-    
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name='Сумма')
-    
-    customer_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='Имя клиента')
-    customer_phone = models.CharField(max_length=50, blank=True, null=True, verbose_name='Телефон клиента')
-    customer_email = models.EmailField(blank=True, null=True, verbose_name='Email клиента')
-    
-    delivery_address = models.TextField(blank=True, null=True, verbose_name='Адрес доставки')
-    
-    comment = models.TextField(blank=True, null=True, verbose_name='Комментарий')
-    
-    order_date = models.DateTimeField(verbose_name='Дата заказа')
-    
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлено')
-    
-    last_sync = models.DateTimeField(auto_now=True, verbose_name='Последняя синхронизация')
-    
-    raw_data = models.JSONField(blank=True, null=True, verbose_name='Полные данные из API')
-    
+    moysklad_id = models.CharField("ID в МойСклад", max_length=255, unique=True)
+    number = models.CharField("Номер заказа", max_length=255)
+    status = models.CharField("Статус", max_length=20, choices=STATUS_CHOICES, default='new')
+
+    total_amount = models.DecimalField("Сумма", max_digits=12, decimal_places=2, default=0)
+
+    customer_name = models.CharField("Имя клиента", max_length=255, blank=True, null=True)
+    customer_phone = models.CharField("Телефон клиента", max_length=50, blank=True, null=True)
+    customer_email = models.EmailField("Email клиента", blank=True, null=True)
+
+    delivery_address = models.TextField("Адрес доставки", blank=True, null=True)
+    comment = models.TextField("Комментарий", blank=True, null=True)
+
+    order_date = models.DateTimeField("Дата заказа")
+
+    raw_data = models.JSONField("Полные данные из API", blank=True, null=True)
+
+    created_at = models.DateTimeField("Создано", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
+    last_sync = models.DateTimeField("Последняя синхронизация", auto_now=True)
+
     class Meta:
-        verbose_name = 'Заказ'
-        verbose_name_plural = 'Заказы'
+        verbose_name = "Заказ МойСклад"
+        verbose_name_plural = "Заказы МойСклад"
         ordering = ['-order_date']
+        db_table = 'integration_moysklad_order'
         indexes = [
             models.Index(fields=['moysklad_id']),
             models.Index(fields=['number']),
         ]
-    
+
     def __str__(self):
         return f"Заказ #{self.number} от {self.order_date.strftime('%d.%m.%Y')}"
 
 
 class SyncLog(models.Model):
     """Лог синхронизации"""
-    
+
     SYNC_TYPES = [
         ('products', 'Товары'),
         ('orders', 'Заказы'),
         ('stock', 'Остатки'),
         ('categories', 'Категории'),
+        ('brands', 'Бренды'),
     ]
-    
+
     STATUS_CHOICES = [
         ('started', 'Начата'),
         ('success', 'Успешно'),
         ('error', 'Ошибка'),
     ]
-    
-    sync_type = models.CharField(max_length=20, choices=SYNC_TYPES, verbose_name='Тип синхронизации')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='started', verbose_name='Статус')
-    
-    items_processed = models.IntegerField(default=0, verbose_name='Обработано элементов')
-    items_created = models.IntegerField(default=0, verbose_name='Создано элементов')
-    items_updated = models.IntegerField(default=0, verbose_name='Обновлено элементов')
-    
-    error_message = models.TextField(blank=True, null=True, verbose_name='Сообщение об ошибке')
-    
-    started_at = models.DateTimeField(auto_now_add=True, verbose_name='Начало')
-    finished_at = models.DateTimeField(null=True, blank=True, verbose_name='Окончание')
-    
+
+    sync_type = models.CharField("Тип синхронизации", max_length=20, choices=SYNC_TYPES)
+    status = models.CharField("Статус", max_length=20, choices=STATUS_CHOICES, default='started')
+
+    items_processed = models.IntegerField("Обработано элементов", default=0)
+    items_created = models.IntegerField("Создано элементов", default=0)
+    items_updated = models.IntegerField("Обновлено элементов", default=0)
+
+    error_message = models.TextField("Сообщение об ошибке", blank=True, null=True)
+
+    started_at = models.DateTimeField("Начало", auto_now_add=True)
+    finished_at = models.DateTimeField("Окончание", null=True, blank=True)
+
     class Meta:
-        verbose_name = 'Лог синхронизации'
-        verbose_name_plural = 'Логи синхронизации'
+        verbose_name = "Лог синхронизации"
+        verbose_name_plural = "Логи синхронизации"
         ordering = ['-started_at']
-    
+        db_table = 'integration_sync_log'
+
     def __str__(self):
         return f"{self.get_sync_type_display()} - {self.get_status_display()} ({self.started_at.strftime('%d.%m.%Y %H:%M')})"

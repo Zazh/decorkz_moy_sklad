@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.utils import timezone
 from django.utils.text import slugify
 
-from catalog.models import Brand
+from references.models import Brand
 from products.models import Product
 from pricing.models import PriceType, Price
 from inventory.models import Warehouse, Stock

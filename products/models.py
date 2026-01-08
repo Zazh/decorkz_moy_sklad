@@ -1,69 +1,177 @@
 # products/models.py
 
 from django.db import models
-from decimal import Decimal
+from django.utils.text import slugify
 
 
 class Product(models.Model):
-    """Товар — ядро, синхронизируется из МойСклад"""
+    """
+    Товар для витрины.
+    Связывает МойСклад (цены/остатки) с карточкой контента.
+    """
 
-    # Идентификаторы
-    moysklad_id = models.CharField("ID МойСклад", max_length=255, unique=True)
-    sku = models.CharField("SKU (код)", max_length=100, unique=True, db_index=True)
-    article = models.CharField("Артикул", max_length=100, blank=True, db_index=True)
-    barcode = models.CharField("Штрихкод", max_length=50, blank=True, db_index=True)
-
-    # Базовая информация
-    name = models.CharField("Название", max_length=500)
-
-    # Связи
-    brand = models.ForeignKey(
-        'catalog.Brand',
-        null=True, blank=True,
+    # Связь с МойСклад (цены, остатки)
+    moysklad = models.OneToOneField(
+        'integration.MoySkladProduct',
         on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='product',
+        verbose_name="МойСклад"
+    )
+
+    # Связь с карточкой контента
+    card = models.OneToOneField(
+        'cards.ProductCard',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='product',
+        verbose_name="Карточка контента"
+    )
+
+    # Идентификация
+    article = models.CharField(
+        "Артикул",
+        max_length=100,
+        unique=True,
+        db_index=True
+    )
+    slug = models.SlugField(
+        "URL",
+        max_length=255,
+        unique=True,
+        blank=True
+    )
+
+    # Классификация
+    brand = models.ForeignKey(
+        'references.Brand',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
         related_name='products',
         verbose_name="Бренд"
     )
-    categories = models.ManyToManyField(
-        'catalog.Category',
+    category = models.ForeignKey(
+        'references.Category',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
         related_name='products',
-        blank=True,
-        verbose_name="Категории"
+        verbose_name="Категория"
     )
 
-    # Физические характеристики
-    weight = models.DecimalField("Вес (кг)", max_digits=10, decimal_places=3, null=True, blank=True)
-    volume = models.DecimalField("Объём (м³)", max_digits=10, decimal_places=6, null=True, blank=True)
-
-    # Флаги из МойСклад
-    is_kaspi = models.BooleanField("Товар Kaspi", default=False)
-    is_satu = models.BooleanField("Товар Satu", default=False)
-    is_promo = models.BooleanField("Акция", default=False)
-
-    # Путь в МойСклад
-    moysklad_path = models.CharField("Путь в МойСклад", max_length=500, blank=True)
-
-    # Статусы
+    # Статус
     is_active = models.BooleanField("Активен", default=True)
-    archived = models.BooleanField("В архиве", default=False)
-
-    # Сырые данные
-    raw_data = models.JSONField("Сырые данные", default=dict, blank=True)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    last_sync = models.DateTimeField("Последняя синхронизация", auto_now=True)
 
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
-        ordering = ['name']
+        ordering = ['-created_at']
+        db_table = 'pim_product'
 
     def __str__(self):
-        return f"{self.name} ({self.sku})"
+        return f"{self.article} — {self.title}"
 
-    def get_min_price(self):
-        """Минимальная цена из raw_data"""
-        min_price = self.raw_data.get('minPrice', {}).get('value', 0)
-        return Decimal(min_price) / 100 if min_price else None
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.generate_slug()
+        super().save(*args, **kwargs)
+
+    def generate_slug(self):
+        """Генерация URL: категория/название-артикул"""
+        parts = []
+
+        # Категория
+        if self.category:
+            parts.append(slugify(self.category.title, allow_unicode=True))
+
+        # Название из карточки или артикул
+        title_part = slugify(self.title, allow_unicode=True) if self.card else ''
+        if title_part:
+            parts.append(f"{title_part}-{self.article.lower()}")
+        else:
+            parts.append(self.article.lower())
+
+        base = '-'.join(parts)[:200]
+        slug = base
+        counter = 1
+
+        while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base[:190]}-{counter}"
+            counter += 1
+
+        return slug
+
+    # ═══════════════════════════════════════════════════════════
+    # Данные из карточки контента (@property)
+    # ═══════════════════════════════════════════════════════════
+
+    @property
+    def title(self):
+        """Название из карточки"""
+        return self.card.title if self.card else self.article
+
+    @property
+    def description(self):
+        """Описание из карточки"""
+        return self.card.description if self.card else ""
+
+    @property
+    def short_description(self):
+        """Короткое описание из карточки"""
+        return self.card.short_description if self.card else ""
+
+    @property
+    def main_image(self):
+        """Главное изображение из карточки"""
+        if self.card:
+            return self.card.get_main_image()
+        return None
+
+    @property
+    def images(self):
+        """Все изображения из карточки"""
+        if self.card:
+            return self.card.images.all()
+        return []
+
+    @property
+    def attributes(self):
+        """Атрибуты из карточки"""
+        if self.card:
+            return self.card.attributes.all()
+        return []
+
+    # ═══════════════════════════════════════════════════════════
+    # Данные из МойСклад (@property)
+    # ═══════════════════════════════════════════════════════════
+
+    @property
+    def price(self):
+        """Цена из МойСклад"""
+        if self.moysklad:
+            return self.moysklad.price
+        return None
+
+    @property
+    def stock(self):
+        """Доступный остаток из МойСклад"""
+        if self.moysklad:
+            return max(0, self.moysklad.stock - self.moysklad.reserve)
+        return 0
+
+    @property
+    def sku(self):
+        """SKU из МойСклад"""
+        if self.moysklad:
+            return self.moysklad.code or self.moysklad.article
+        return self.article
+
+    @property
+    def barcode(self):
+        """Штрихкод из МойСклад"""
+        if self.moysklad:
+            return self.moysklad.barcode
+        return None

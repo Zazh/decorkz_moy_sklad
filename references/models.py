@@ -1,8 +1,98 @@
-# catalog/models.py
+# references/models.py
 
 from django.db import models
 from django.utils.text import slugify
 
+
+class UnitGroup(models.Model):
+    """Группа единиц измерения (Масса, Длина, Объём и т.д.)"""
+
+    name = models.CharField("Название", max_length=50, unique=True)
+    base_unit_symbol = models.CharField(
+        "Символ базовой единицы",
+        max_length=20,
+        help_text="Все значения хранятся в этих единицах (г, мм, мл, Вт)"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Группа единиц"
+        verbose_name_plural = "Группы единиц"
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} ({self.base_unit_symbol})"
+
+
+class Unit(models.Model):
+    """Единица измерения с коэффициентом для конвертации"""
+
+    group = models.ForeignKey(
+        UnitGroup,
+        on_delete=models.CASCADE,
+        related_name='units',
+        verbose_name="Группа"
+    )
+
+    name = models.CharField("Название", max_length=50)
+    symbol = models.CharField("Символ", max_length=20)
+
+    aliases = models.JSONField(
+        "Синонимы",
+        default=list,
+        blank=True,
+        help_text='Варианты написания: ["kg", "КГ", "килограмм"]'
+    )
+
+    multiplier = models.DecimalField(
+        "Множитель",
+        max_digits=20,
+        decimal_places=10,
+        default=1,
+        help_text="Коэффициент для перевода в базовую единицу (кг→г = 1000)"
+    )
+
+    is_base = models.BooleanField(
+        "Базовая единица",
+        default=False,
+        help_text="Единица в которой хранятся значения"
+    )
+
+    sort_order = models.IntegerField("Сортировка", default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Единица измерения"
+        verbose_name_plural = "Единицы измерения"
+        ordering = ['group', '-is_base', 'sort_order', 'name']
+        unique_together = [['group', 'symbol']]
+
+    def __str__(self):
+        return f"{self.symbol} ({self.group.name})"
+
+    def save(self, *args, **kwargs):
+        # Только одна базовая единица в группе
+        if self.is_base:
+            Unit.objects.filter(group=self.group, is_base=True).exclude(pk=self.pk).update(is_base=False)
+        super().save(*args, **kwargs)
+
+    def to_base(self, value):
+        """Конвертировать значение в базовые единицы"""
+        from decimal import Decimal
+        if value is None:
+            return None
+        return Decimal(str(value)) * self.multiplier
+
+    def from_base(self, value):
+        """Конвертировать из базовых единиц"""
+        from decimal import Decimal
+        if value is None:
+            return None
+        return Decimal(str(value)) / self.multiplier
 
 class Brand(models.Model):
     """Бренды товаров"""
@@ -53,7 +143,26 @@ class AttributeDefinition(models.Model):
 
     value_type = models.CharField("Тип значения", max_length=20, choices=VALUE_TYPES, default='string')
     filter_type = models.CharField("Тип фильтра", max_length=20, choices=FILTER_TYPES, default='checkbox')
-    unit = models.CharField("Единица измерения", max_length=20, blank=True)
+    unit = models.CharField("Единица измерения", max_length=20,
+                            blank=True)  # старое поле, можно оставить для совместимости
+
+    # Новые поля для работы с единицами
+    unit_group = models.ForeignKey(
+        UnitGroup,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='attributes',
+        verbose_name="Группа единиц",
+        help_text="Для числовых характеристик с единицами измерения"
+    )
+    default_unit = models.ForeignKey(
+        Unit,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='default_for_attributes',
+        verbose_name="Единица по умолчанию",
+        help_text="Используется если при парсинге единица не указана"
+    )
 
     is_active = models.BooleanField("Активен", default=True)
     sort_order = models.IntegerField("Сортировка", default=0)
@@ -72,8 +181,11 @@ class AttributeDefinition(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        unit_str = f" ({self.unit})" if self.unit else ""
-        return f"{self.name}{unit_str}"
+        if self.default_unit:
+            return f"{self.name} ({self.default_unit.symbol})"
+        elif self.unit:
+            return f"{self.name} ({self.unit})"
+        return self.name
 
 
 class Category(models.Model):

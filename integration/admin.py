@@ -1,17 +1,22 @@
+# integration/admin.py
+
 from django.contrib import admin
-from .models import Product, ProductCategory, Order, SyncLog
+from .models import MoySkladProduct, MoySkladCategory, MoySkladBrand, MoySkladOrder, SyncLog
 
 
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'article', 'price', 'stock', 'is_active', 'last_sync']
+@admin.register(MoySkladProduct)
+class MoySkladProductAdmin(admin.ModelAdmin):
+    list_display = ['name', 'article', 'code', 'price', 'stock', 'is_active', 'archived', 'last_sync']
     list_filter = ['is_active', 'archived', 'created_at']
-    search_fields = ['name', 'article', 'code', 'moysklad_id']
-    readonly_fields = ['moysklad_id', 'created_at', 'updated_at', 'last_sync']
-    
+    search_fields = ['name', 'article', 'code', 'moysklad_id', 'barcode']
+    readonly_fields = ['moysklad_id', 'raw_data', 'created_at', 'updated_at', 'last_sync']
+
     fieldsets = (
-        ('Основная информация', {
-            'fields': ('name', 'code', 'article', 'description')
+        ('Идентификаторы', {
+            'fields': ('moysklad_id', 'code', 'article', 'barcode', 'external_code')
+        }),
+        ('Основное', {
+            'fields': ('name', 'description', 'path_name')
         }),
         ('Цены и остатки', {
             'fields': ('price', 'cost', 'stock', 'reserve')
@@ -19,33 +24,42 @@ class ProductAdmin(admin.ModelAdmin):
         ('Статус', {
             'fields': ('is_active', 'archived')
         }),
-        ('Дополнительно', {
-            'fields': ('external_code', 'barcode', 'moysklad_id')
+        ('Сырые данные', {
+            'fields': ('raw_data',),
+            'classes': ('collapse',)
         }),
-        ('Служебная информация', {
+        ('Служебное', {
             'fields': ('created_at', 'updated_at', 'last_sync'),
             'classes': ('collapse',)
         }),
     )
 
 
-@admin.register(ProductCategory)
-class ProductCategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'parent', 'created_at']
-    search_fields = ['name', 'moysklad_id']
-    readonly_fields = ['moysklad_id', 'created_at', 'updated_at']
+@admin.register(MoySkladCategory)
+class MoySkladCategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'path_name', 'parent', 'created_at']
+    search_fields = ['name', 'path_name', 'moysklad_id']
+    readonly_fields = ['moysklad_id', 'raw_data', 'created_at', 'updated_at']
+    autocomplete_fields = ['parent']
 
 
-@admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+@admin.register(MoySkladBrand)
+class MoySkladBrandAdmin(admin.ModelAdmin):
+    list_display = ['name', 'products_count', 'created_at']
+    search_fields = ['name']
+    readonly_fields = ['products_count', 'created_at', 'updated_at']
+
+
+@admin.register(MoySkladOrder)
+class MoySkladOrderAdmin(admin.ModelAdmin):
     list_display = ['number', 'customer_name', 'status', 'total_amount', 'order_date']
     list_filter = ['status', 'order_date']
     search_fields = ['number', 'customer_name', 'customer_phone', 'moysklad_id']
-    readonly_fields = ['moysklad_id', 'created_at', 'updated_at', 'last_sync']
-    
+    readonly_fields = ['moysklad_id', 'raw_data', 'created_at', 'updated_at', 'last_sync']
+
     fieldsets = (
-        ('Информация о заказе', {
-            'fields': ('number', 'status', 'total_amount', 'order_date')
+        ('Заказ', {
+            'fields': ('moysklad_id', 'number', 'status', 'total_amount', 'order_date')
         }),
         ('Клиент', {
             'fields': ('customer_name', 'customer_phone', 'customer_email')
@@ -53,8 +67,12 @@ class OrderAdmin(admin.ModelAdmin):
         ('Доставка', {
             'fields': ('delivery_address', 'comment')
         }),
-        ('Служебная информация', {
-            'fields': ('moysklad_id', 'created_at', 'updated_at', 'last_sync'),
+        ('Сырые данные', {
+            'fields': ('raw_data',),
+            'classes': ('collapse',)
+        }),
+        ('Служебное', {
+            'fields': ('created_at', 'updated_at', 'last_sync'),
             'classes': ('collapse',)
         }),
     )
@@ -62,14 +80,14 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(SyncLog)
 class SyncLogAdmin(admin.ModelAdmin):
-    list_display = ['sync_type', 'status', 'items_processed', 'items_created', 
-                    'items_updated', 'started_at', 'finished_at']
+    list_display = ['sync_type', 'status', 'items_processed', 'items_created', 'items_updated', 'started_at',
+                    'finished_at']
     list_filter = ['sync_type', 'status', 'started_at']
-    readonly_fields = ['sync_type', 'status', 'items_processed', 'items_created', 
-                       'items_updated', 'error_message', 'started_at', 'finished_at']
-    
+    readonly_fields = ['sync_type', 'status', 'items_processed', 'items_created', 'items_updated', 'error_message',
+                       'started_at', 'finished_at']
+
     def has_add_permission(self, request):
         return False
-    
+
     def has_change_permission(self, request, obj=None):
         return False

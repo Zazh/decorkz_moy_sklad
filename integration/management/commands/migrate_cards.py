@@ -6,7 +6,7 @@ import os
 from legacy.models import LegacyProduct
 from products.models import Product
 from cards.models import ProductCard, ProductCardImage, ProductCardAttribute
-from catalog.models import AttributeDefinition
+from references.models import AttributeDefinition
 
 
 class Command(BaseCommand):
