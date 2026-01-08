@@ -31,6 +31,9 @@ INSTALLED_APPS = [
     'cards',
     'pricing',
     'inventory',
+
+    #legacy
+    'legacy'
 ]
 
 MIDDLEWARE = [
@@ -73,6 +76,14 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD', 'kb971033'),
         'HOST': os.getenv('DB_HOST', 'db'),
         'PORT': os.getenv('DB_PORT', '5432'),
+    },
+    'legacy': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('LEGACY_DB_NAME', 'decorkz_db'),
+        'USER': os.getenv('LEGACY_DB_USER', 'postgresuser'),
+        'PASSWORD': os.getenv('LEGACY_DB_PASSWORD', 'kb971033'),
+        'HOST': os.getenv('LEGACY_DB_HOST', 'db'),
+        'PORT': os.getenv('LEGACY_DB_PORT', '5432'),
     }
 }
 

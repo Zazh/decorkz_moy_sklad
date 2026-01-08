@@ -13,7 +13,7 @@ class ProductCard(models.Model):
         null=True, blank=True,
         verbose_name="Товар"
     )
-    sku = models.CharField("SKU", max_length=100, db_index=True)
+    sku = models.CharField("SKU", max_length=100, db_index=True, blank=True)
 
     title = models.CharField("Название", max_length=255)
     slug = models.SlugField("URL", unique=True, blank=True)
@@ -41,11 +41,6 @@ class ProductCard(models.Model):
         return f"{self.title} ({self.sku})"
 
     def save(self, *args, **kwargs):
-        # Привязка по SKU
-        if not self.product and self.sku:
-            from products.models import Product
-            self.product = Product.objects.filter(sku=self.sku).first()
-
         # Генерация slug
         if not self.slug:
             base = slugify(self.title, allow_unicode=True) or self.sku

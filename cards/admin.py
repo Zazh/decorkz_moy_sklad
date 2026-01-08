@@ -4,6 +4,24 @@ from django.contrib import admin
 from .models import ProductCard, ProductCardImage, ProductCardAttribute
 
 
+class ProductLinkFilter(admin.SimpleListFilter):
+    title = 'Связь с товаром'
+    parameter_name = 'product_link'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('linked', 'Связанные'),
+            ('unlinked', 'Без связи'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'linked':
+            return queryset.filter(product__isnull=False)
+        if self.value() == 'unlinked':
+            return queryset.filter(product__isnull=True)
+        return queryset
+
+
 class ProductCardImageInline(admin.TabularInline):
     model = ProductCardImage
     extra = 1
@@ -17,8 +35,8 @@ class ProductCardAttributeInline(admin.TabularInline):
 
 @admin.register(ProductCard)
 class ProductCardAdmin(admin.ModelAdmin):
-    list_display = ['sku', 'title', 'product', 'is_default', 'is_active', 'source']
-    list_filter = ['is_active', 'is_default', 'source']
+    list_display = ['sku', 'title', 'product', 'is_default', 'is_active', 'source', 'has_product']
+    list_filter = [ProductLinkFilter, 'is_active', 'is_default', 'source']
     search_fields = ['sku', 'title', 'product__name']
     prepopulated_fields = {'slug': ('title',)}
     autocomplete_fields = ['product']
@@ -40,3 +58,7 @@ class ProductCardAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    @admin.display(boolean=True, description='Связан')
+    def has_product(self, obj):
+        return obj.product is not None
