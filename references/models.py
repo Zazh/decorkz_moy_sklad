@@ -94,8 +94,10 @@ class Unit(models.Model):
             return None
         return Decimal(str(value)) / self.multiplier
 
+
 class Brand(models.Model):
-    """Бренды товаров"""
+    """Бренды товаров — эталонный справочник"""
+
     name = models.CharField("Название", max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
     logo = models.ImageField("Логотип", upload_to='brands/', blank=True)
@@ -113,6 +115,7 @@ class Brand(models.Model):
         ordering = ['sort_order', 'name']
 
     def save(self, *args, **kwargs):
+        self.name = self.name.strip()
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)

@@ -5,44 +5,19 @@ from integration.services.sync_pim import PIMSyncService
 
 
 class Command(BaseCommand):
-    help = 'Синхронизация товаров и цен в PIM модели'
-
-    def add_arguments(self, parser):
-        parser.add_argument(
-            '--stock',
-            action='store_true',
-            help='Синхронизировать только остатки'
-        )
-        parser.add_argument(
-            '--all',
-            action='store_true',
-            help='Синхронизировать всё: товары, цены и остатки'
-        )
+    help = 'Синхронизация MoySkladProduct → Product'
 
     def handle(self, *args, **options):
+        self.stdout.write('Синхронизация товаров...')
+
         service = PIMSyncService()
+        result = service.sync_products()
 
-        if options['stock']:
-            self.stdout.write('Синхронизация остатков...')
-            result = service.sync_stock()
-            self.stdout.write(self.style.SUCCESS(
-                f"Остатки: обновлено {result['updated']} из {result['total']}"
-            ))
-        elif options['all']:
-            self.stdout.write('Синхронизация товаров и цен...')
-            result = service.sync_all()
-            self.stdout.write(self.style.SUCCESS(
-                f"Товары: создано {result['created']}, обновлено {result['updated']}"
-            ))
-
-            self.stdout.write('Синхронизация остатков...')
-            result = service.sync_stock()
-            self.stdout.write(self.style.SUCCESS(
-                f"Остатки: обновлено {result['updated']} из {result['total']}"
-            ))
-        else:
-            self.stdout.write('Синхронизация товаров и цен...')
-            result = service.sync_all()
-            self.stdout.write(self.style.SUCCESS(
-                f"Товары: создано {result['created']}, обновлено {result['updated']}"
-            ))
+        self.stdout.write(self.style.SUCCESS(
+            f"\nГотово!\n"
+            f"  Создано: {result['created']}\n"
+            f"  Обновлено: {result['updated']}\n"
+            f"  Пропущено: {result['skipped']}\n"
+            f"  Ошибок: {result['errors']}\n"
+            f"  Всего: {result['total']}"
+        ))

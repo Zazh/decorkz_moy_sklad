@@ -11,13 +11,6 @@ class BrandMapping(models.Model):
         ('parser', 'Парсер'),
     ]
 
-    brand = models.ForeignKey(
-        'references.Brand',
-        on_delete=models.CASCADE,
-        related_name='mappings',
-        verbose_name="Бренд"
-    )
-
     source = models.CharField(
         "Источник",
         max_length=50,
@@ -29,6 +22,15 @@ class BrandMapping(models.Model):
         help_text="Как бренд называется в МойСклад или на сайте"
     )
 
+    brand = models.ForeignKey(
+        'references.Brand',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='mappings',
+        verbose_name="Бренд"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -36,11 +38,12 @@ class BrandMapping(models.Model):
         verbose_name_plural = "Маппинг брендов"
         db_table = 'mapping_brand'
         unique_together = [['source', 'source_name']]
-        ordering = ['brand__name', 'source']
+        ordering = ['source_name']
 
     def __str__(self):
-        return f"{self.source_name} ({self.source}) → {self.brand.name}"
-
+        if self.brand:
+            return f"{self.source_name} → {self.brand.name}"
+        return f"{self.source_name} (не связан)"
 
 class CategoryMapping(models.Model):
     """Маппинг категорий из разных источников на справочник"""

@@ -64,12 +64,31 @@ class UnitAdmin(admin.ModelAdmin):
 
 @admin.register(Brand)
 class BrandAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug', 'is_active', 'sort_order']
+    list_display = ['name', 'slug', 'mappings_count', 'products_count', 'is_active', 'sort_order']
     list_editable = ['is_active', 'sort_order']
     list_filter = ['is_active']
-    search_fields = ['name']
+    search_fields = ['name', 'slug']
     prepopulated_fields = {'slug': ('name',)}
 
+    fieldsets = (
+        ('Основное', {
+            'fields': ('name', 'slug', 'logo', 'description')
+        }),
+        ('Статус', {
+            'fields': ('is_active', 'sort_order')
+        }),
+    )
+
+    def mappings_count(self, obj):
+        count = obj.mappings.count()
+        return count if count > 0 else '—'
+
+    mappings_count.short_description = 'Синонимов'
+
+    def products_count(self, obj):
+        return obj.products.count()
+
+    products_count.short_description = 'Товаров'
 
 @admin.register(AttributeDefinition)
 class AttributeDefinitionAdmin(admin.ModelAdmin):
