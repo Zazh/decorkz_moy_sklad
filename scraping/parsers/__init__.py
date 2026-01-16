@@ -1,33 +1,23 @@
 # scraping/parsers/__init__.py
 
 from .base import BaseParser, ParsedProduct
+from .decor_dizayn import DecorDizaynParser
 
 # Реестр всех парсеров
-# При создании нового парсера добавь его сюда
 PARSERS: dict[str, type[BaseParser]] = {
-    # 'bosch': BoschParser,
-    # 'makita': MakitaParser,
+    'decor_dizayn': DecorDizaynParser,
 }
 
 
-def get_parser(name: str) -> BaseParser:
+def get_parser(name: str, **kwargs) -> BaseParser:
     """
     Получить экземпляр парсера по имени.
-
-    Args:
-        name: Имя парсера (ключ в PARSERS)
-
-    Returns:
-        Экземпляр парсера
-
-    Raises:
-        ValueError: Если парсер не найден
     """
     parser_class = PARSERS.get(name)
     if not parser_class:
         available = ', '.join(PARSERS.keys()) if PARSERS else 'нет доступных парсеров'
         raise ValueError(f"Парсер '{name}' не найден. Доступные: {available}")
-    return parser_class()
+    return parser_class(**kwargs)
 
 
 def get_all_parsers() -> list[BaseParser]:

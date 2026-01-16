@@ -92,23 +92,22 @@ class BrandAdmin(admin.ModelAdmin):
 
 @admin.register(AttributeDefinition)
 class AttributeDefinitionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug', 'value_type', 'filter_type', 'unit_display', 'is_active', 'sort_order']
+    list_display = ['name', 'code', 'slug', 'value_type', 'filter_type', 'unit_display', 'is_active', 'sort_order']
     list_editable = ['is_active', 'sort_order']
     list_filter = ['value_type', 'filter_type', 'is_active', 'unit_group']
-    search_fields = ['name', 'slug']
+    search_fields = ['name', 'slug', 'code']
     prepopulated_fields = {'slug': ('name',)}
     autocomplete_fields = ['unit_group', 'default_unit']
 
     fieldsets = (
         ('Основное', {
-            'fields': ('name', 'slug')
+            'fields': ('name', 'slug', 'code')
         }),
         ('Тип', {
             'fields': ('value_type', 'filter_type')
         }),
         ('Единицы измерения', {
-            'fields': ('unit_group', 'default_unit', 'unit'),
-            'description': 'unit_group и default_unit — для новой логики. unit — legacy поле.'
+            'fields': ('unit_group', 'default_unit'),
         }),
         ('Статус', {
             'fields': ('is_active', 'sort_order')
@@ -118,8 +117,6 @@ class AttributeDefinitionAdmin(admin.ModelAdmin):
     def unit_display(self, obj):
         if obj.default_unit:
             return obj.default_unit.symbol
-        elif obj.unit:
-            return obj.unit
         return "—"
 
     unit_display.short_description = "Единица"
@@ -136,7 +133,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ['title', 'slug', 'parent', 'is_active', 'sort_order']
     list_editable = ['is_active', 'sort_order']
     list_filter = ['is_active', 'parent']
-    search_fields = ['title']
+    search_fields = ['title', 'slug']
     prepopulated_fields = {'slug': ('title',)}
     autocomplete_fields = ['parent']
     inlines = [CategoryAttributeInline]

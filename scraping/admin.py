@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import ScrapedProduct, ScrapedImage, ParserRun
+from .models import ScrapedProduct, ScrapedImage, ParserRun, ParserTask
 
 
 class ScrapedImageInline(admin.TabularInline):
@@ -21,21 +21,21 @@ class ScrapedImageInline(admin.TabularInline):
     image_preview.short_description = "Превью"
 
 
-class MatchedFilter(admin.SimpleListFilter):
-    title = 'Связь с PIM'
-    parameter_name = 'matched'
+class ProcessedFilter(admin.SimpleListFilter):
+    title = 'Статус обработки'
+    parameter_name = 'processed'
 
     def lookups(self, request, model_admin):
         return (
-            ('yes', 'Связанные'),
-            ('no', 'Без связи'),
+            ('yes', 'Обработанные'),
+            ('no', 'Не обработанные'),
         )
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(product__isnull=False)
+            return queryset.filter(is_processed=True)
         if self.value() == 'no':
-            return queryset.filter(product__isnull=True)
+            return queryset.filter(is_processed=False)
         return queryset
 
 
@@ -43,39 +43,40 @@ class MatchedFilter(admin.SimpleListFilter):
 class ScrapedProductAdmin(admin.ModelAdmin):
     list_display = [
         'sku',
-        'brand',
+        'brand_name',
         'title_short',
-        'product_link',
+        'category_name',
         'images_count',
-        'is_matched',
+        'is_processed',
         'is_active',
         'parsed_at'
     ]
-    list_filter = ['brand', 'parser_name', MatchedFilter, 'is_active']
-    search_fields = ['sku', 'title', 'source_url', 'product__sku']
+    list_filter = ['parser_task__target_brand', 'parser_task__target_category', ProcessedFilter, 'is_active']
+    search_fields = ['sku', 'title', 'source_url']
     readonly_fields = [
-        'parser_name',
+        'parser_task',
         'source_url_link',
         'parsed_at',
         'created_at',
         'updated_at',
-        'specifications_pretty'
+        'specifications_pretty',
+        'missing_attributes'
     ]
-    autocomplete_fields = ['product']
+    autocomplete_fields = ['processed_card']
     inlines = [ScrapedImageInline]
 
     fieldsets = (
         ('Источник', {
-            'fields': ('parser_name', 'source_url_link', 'sku', 'brand')
+            'fields': ('parser_task', 'source_url_link', 'sku')
         }),
         ('Контент', {
             'fields': ('title', 'short_description', 'description')
         }),
         ('Характеристики', {
-            'fields': ('category', 'specifications_pretty', 'video_url')
+            'fields': ('specifications_pretty', 'missing_attributes', 'video_url')
         }),
-        ('Связь с PIM', {
-            'fields': ('product', 'is_matched')
+        ('Обработка', {
+            'fields': ('is_processed', 'processed_card')
         }),
         ('Статус', {
             'fields': ('is_active',)
@@ -88,29 +89,23 @@ class ScrapedProductAdmin(admin.ModelAdmin):
 
     def title_short(self, obj):
         return obj.title[:50] + '...' if len(obj.title) > 50 else obj.title
-
     title_short.short_description = "Название"
+
+    def brand_name(self, obj):
+        return obj.parser_task.target_brand.name
+    brand_name.short_description = "Бренд"
+
+    def category_name(self, obj):
+        return obj.parser_task.target_category.title
+    category_name.short_description = "Категория"
 
     def source_url_link(self, obj):
         return format_html('<a href="{}" target="_blank">{}</a>', obj.source_url, obj.source_url[:60] + '...')
-
     source_url_link.short_description = "URL источника"
-
-    def product_link(self, obj):
-        if obj.product:
-            return format_html(
-                '<a href="/admin/products/product/{}/change/">{}</a>',
-                obj.product.pk,
-                obj.product.sku
-            )
-        return "—"
-
-    product_link.short_description = "Товар PIM"
 
     def images_count(self, obj):
         count = obj.images.count()
         return count if count > 0 else "—"
-
     images_count.short_description = "Фото"
 
     def specifications_pretty(self, obj):
@@ -121,8 +116,15 @@ class ScrapedProductAdmin(admin.ModelAdmin):
             for k, v in obj.specifications.items()
         )
         return format_html('<table style="width:100%">{}</table>', rows)
-
     specifications_pretty.short_description = "Характеристики"
+
+    def missing_attributes(self, obj):
+        missing = obj.get_missing_required_attributes()
+        if not missing:
+            return format_html('<span style="color:green;">✓ Все обязательные атрибуты заполнены</span>')
+        names = ', '.join(attr.name for attr in missing)
+        return format_html('<span style="color:red;">Не хватает: {}</span>', names)
+    missing_attributes.short_description = "Обязательные атрибуты"
 
     actions = ['mark_active', 'mark_inactive']
 
@@ -133,6 +135,42 @@ class ScrapedProductAdmin(admin.ModelAdmin):
     @admin.action(description="Деактивировать выбранные")
     def mark_inactive(self, request, queryset):
         queryset.update(is_active=False)
+
+
+@admin.register(ParserTask)
+class ParserTaskAdmin(admin.ModelAdmin):
+    list_display = [
+        'parser_name',
+        'target_brand',
+        'target_category',
+        'source_category_name',
+        'status',
+        'items_found',
+        'items_parsed',
+        'is_active',
+        'last_run'
+    ]
+    list_filter = ['parser_name', 'status', 'is_active', 'target_brand', 'target_category']
+    search_fields = ['source_url', 'source_category_name']
+    autocomplete_fields = ['target_brand', 'target_category']
+    readonly_fields = ['status', 'last_run', 'items_found', 'items_parsed', 'error_message', 'created_at', 'updated_at']
+
+    fieldsets = (
+        ('Источник', {
+            'fields': ('parser_name', 'source_url', 'source_category_name')
+        }),
+        ('Связь со справочниками', {
+            'fields': ('target_brand', 'target_category'),
+            'description': 'Все товары из этого задания получат указанный бренд и категорию'
+        }),
+        ('Статус', {
+            'fields': ('is_active', 'status', 'last_run', 'items_found', 'items_parsed', 'error_message')
+        }),
+        ('Служебное', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(ParserRun)
@@ -173,7 +211,6 @@ class ParserRunAdmin(admin.ModelAdmin):
             color,
             obj.get_status_display()
         )
-
     status_badge.short_description = "Статус"
 
     def duration_display(self, obj):
@@ -182,7 +219,6 @@ class ParserRunAdmin(admin.ModelAdmin):
             minutes, seconds = divmod(total_seconds, 60)
             return f"{minutes}м {seconds}с"
         return "—"
-
     duration_display.short_description = "Время"
 
     def has_add_permission(self, request):

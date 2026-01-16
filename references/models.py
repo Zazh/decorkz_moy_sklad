@@ -144,6 +144,14 @@ class AttributeDefinition(models.Model):
     name = models.CharField("Название", max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
 
+    code = models.CharField(
+        "Код",
+        max_length=50,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text="Стандартный код: length, height, thickness, weight, material"
+    )
     value_type = models.CharField("Тип значения", max_length=20, choices=VALUE_TYPES, default='string')
     filter_type = models.CharField("Тип фильтра", max_length=20, choices=FILTER_TYPES, default='checkbox')
     unit = models.CharField("Единица измерения", max_length=20,
