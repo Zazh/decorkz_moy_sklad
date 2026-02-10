@@ -38,16 +38,6 @@ class ScrapedProduct(models.Model):
     is_active = models.BooleanField("Активен", default=True)
     is_processed = models.BooleanField("Обработан", default=False)
 
-    # Результат обработки
-    processed_card = models.ForeignKey(
-        'cards.ProductCard',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='source_scraped',
-        verbose_name="Созданная карточка"
-    )
-
     # Timestamps
     parsed_at = models.DateTimeField("Дата парсинга", auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)

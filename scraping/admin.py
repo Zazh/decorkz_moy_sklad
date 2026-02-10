@@ -62,7 +62,6 @@ class ScrapedProductAdmin(admin.ModelAdmin):
         'specifications_pretty',
         'missing_attributes'
     ]
-    autocomplete_fields = ['processed_card']
     inlines = [ScrapedImageInline]
 
     fieldsets = (
@@ -75,11 +74,8 @@ class ScrapedProductAdmin(admin.ModelAdmin):
         ('Характеристики', {
             'fields': ('specifications_pretty', 'missing_attributes', 'video_url')
         }),
-        ('Обработка', {
-            'fields': ('is_processed', 'processed_card')
-        }),
         ('Статус', {
-            'fields': ('is_active',)
+            'fields': ('is_active', 'is_processed')
         }),
         ('Служебное', {
             'fields': ('parsed_at', 'created_at', 'updated_at'),
