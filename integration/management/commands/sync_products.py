@@ -36,6 +36,23 @@ class Command(BaseCommand):
                 if sale_prices:
                     price = sale_prices[0].get('value', 0) / 100
 
+                # Извлечение доп. атрибутов (справочники customentity)
+                site_category = ''
+                site_subcategory = ''
+                for attr in product_data.get('attributes', []):
+                    attr_name = attr.get('name', '')
+                    attr_value = attr.get('value')
+                    if attr_name == 'Категория сайт' and attr_value:
+                        if isinstance(attr_value, dict):
+                            site_category = attr_value.get('name', '')
+                        else:
+                            site_category = str(attr_value).strip()
+                    elif attr_name == 'Подкатегория сайт' and attr_value:
+                        if isinstance(attr_value, dict):
+                            site_subcategory = attr_value.get('name', '')
+                        else:
+                            site_subcategory = str(attr_value).strip()
+
                 # Подготовка данных
                 product_info = {
                     'name': product_data.get('name', ''),
@@ -46,6 +63,8 @@ class Command(BaseCommand):
                     'archived': product_data.get('archived', False),
                     'external_code': product_data.get('externalCode'),
                     'path_name': product_data.get('pathName', ''),
+                    'site_category': site_category,
+                    'site_subcategory': site_subcategory,
                     'raw_data': product_data,
                 }
 

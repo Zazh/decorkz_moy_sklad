@@ -12,6 +12,7 @@ class ProductCard(models.Model):
     SOURCE_CHOICES = [
         ('manual', 'Ручной ввод'),
         ('parsed', 'Из парсинга'),
+        ('moysklad', 'Из МойСклад'),
     ]
 
     # Контент

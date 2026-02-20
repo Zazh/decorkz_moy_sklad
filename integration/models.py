@@ -29,6 +29,10 @@ class MoySkladProduct(models.Model):
     barcode = models.CharField("Штрихкод", max_length=255, blank=True, null=True)
     path_name = models.CharField("Путь в МойСклад", max_length=500, blank=True)
 
+    # Категории для сайта (из доп. атрибутов МойСклад)
+    site_category = models.CharField("Категория сайт", max_length=255, blank=True, default='')
+    site_subcategory = models.CharField("Подкатегория сайт", max_length=255, blank=True, default='')
+
     # Сырые данные
     raw_data = models.JSONField("Полные данные из API", blank=True, null=True)
 

@@ -35,15 +35,6 @@ class Command(BaseCommand):
             # products
             ('pim_product', 'Товары'),
 
-            # scraping
-            ('scraping_scrapedimage', 'Спарсенные изображения'),
-            ('scraping_parserrun', 'Логи парсеров'),
-            ('scraping_scrapedproduct', 'Спарсенные товары'),
-
-            # inventory
-            ('pim_stock', 'Остатки'),
-            ('pim_warehouse', 'Склады'),
-
             # pricing
             ('pim_price', 'Цены'),
             ('pim_price_type', 'Типы цен'),

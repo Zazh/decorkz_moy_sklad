@@ -150,10 +150,14 @@ class Product(models.Model):
 
     @property
     def price(self):
-        """Цена из МойСклад"""
-        if self.moysklad:
-            return self.moysklad.price
-        return None
+        """Розничная цена (РРЦ) из Price"""
+        from pricing.models import Price
+        p = Price.objects.filter(
+            product=self,
+            price_type__name='РРЦ',
+            is_active=True,
+        ).first()
+        return p.price if p else None
 
     @property
     def stock(self):

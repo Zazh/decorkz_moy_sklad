@@ -2,10 +2,26 @@ __pycache__/
 *.pyc
 env/
 venv/
+.venv/
 .idea/
 .vscode/
 *.sqlite3
 /media/
 staticfiles/
 dist/
-backup.sql
+
+# Data files
+_data/
+*.csv
+*.sql
+*.dump
+
+# Environment
+.env
+.env.*
+
+# OS
+.DS_Store
+
+# Claude
+.claude/

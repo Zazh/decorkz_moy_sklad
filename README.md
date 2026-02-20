@@ -152,3 +152,43 @@ docker compose exec moysklad_integration python manage.py createsuperuser
 - Товаров в Product: ~5280 (исключены Реклама, Услуги)
 - Брендов: 45
 - Товаров с брендом: 2051 (39%)
+
+
+## TODO: Парсер → ProductCard
+
+### Принятые решения:
+
+**1. Архитектура (как МойСклад):**
+```
+parse_category → ScrapedProduct (сырые данные)
+process_scraped → ProductCard (контент)
+download_images → ProductCardImage (фото)
+link_cards → Product.card (связь)
+```
+
+**2. Отслеживание изменений:**
+- `ScrapedProduct.is_processed` — карточка создана
+- `ScrapedProduct.needs_update` — сырые данные изменились после создания карточки
+- `ProductCard.is_manually_edited` — редактировалось вручную (не перезаписывать)
+
+**3. Маппинг атрибутов через code:**
+```python
+specifications["length"] → AttributeDefinition(code="length")
+```
+
+**4. Связь ProductCard → ScrapedProduct:**
+- Добавить `ProductCard.scraped_source` (FK)
+
+**5. Связь Product → ProductCard:**
+- Отдельная команда `link_cards --by-sku`
+- Или вручную в админке
+
+### Порядок реализации:
+
+1. [ ] Добавить `ScrapedProduct.needs_update`
+2. [ ] Добавить `ProductCard.scraped_source` (FK)
+3. [ ] Добавить `ProductCard.is_manually_edited`
+4. [ ] Создать команду `process_scraped`
+5. [ ] Создать команду `download_images`
+6. [ ] Создать команду `link_cards`
+7. [ ] Настроить `AttributeDefinition.code` для нужных атрибутов

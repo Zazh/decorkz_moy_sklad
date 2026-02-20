@@ -30,8 +30,6 @@ INSTALLED_APPS = [
     'products',
     'cards',
     'pricing',
-    'inventory',
-    'scraping',
     'mapping',
 
     #legacy

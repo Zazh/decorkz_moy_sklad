@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from products.models import Product
 from references.models import Brand, Category
-from mapping.models import BrandMapping, CategoryMapping
+from mapping.models import BrandMapping
 from integration.models import MoySkladProduct, SyncLog
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ class PIMSyncService:
         'Реклама',
         'Услуги',
         'Основные средства',
+        'Не загружать (прочее)',
     ]
 
     def sync_products(self):
@@ -82,7 +83,13 @@ class PIMSyncService:
         Returns:
             'created' | 'updated' | None (если пропущен)
         """
-        # Проверяем исключённые группы
+        # Проверяем исключённые категории
+        site_cat = ms_product.site_category or ''
+        for excluded in self.EXCLUDED_PATHS:
+            if site_cat == excluded:
+                return None
+
+        # Фолбэк: проверка по path_name (для товаров без site_category)
         path_name = ms_product.path_name or ''
         for excluded in self.EXCLUDED_PATHS:
             if path_name.startswith(excluded):
@@ -178,18 +185,24 @@ class PIMSyncService:
         return None
 
     def _get_category(self, ms_product: MoySkladProduct) -> Category | None:
-        """Получить категорию через маппинг."""
-        path_name = ms_product.path_name
-        if not path_name:
-            return None
+        """Получить категорию из атрибутов 'Категория сайт' / 'Подкатегория сайт'."""
+        # Подкатегория — самый точный уровень
+        if ms_product.site_subcategory:
+            category = Category.objects.filter(
+                title=ms_product.site_subcategory,
+                parent__title=ms_product.site_category,
+            ).first()
+            if category:
+                return category
 
-        mapping = CategoryMapping.objects.filter(
-            source='moysklad',
-            source_name=path_name
-        ).select_related('category').first()
-
-        if mapping:
-            return mapping.category
+        # Если нет подкатегории — используем категорию верхнего уровня
+        if ms_product.site_category:
+            category = Category.objects.filter(
+                title=ms_product.site_category,
+                parent=None,
+            ).first()
+            if category:
+                return category
 
         return None
 
