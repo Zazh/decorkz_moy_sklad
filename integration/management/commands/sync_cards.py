@@ -1,6 +1,9 @@
 # integration/management/commands/sync_cards.py
 
+import time
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import logging
 from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
@@ -12,6 +15,9 @@ from integration.models import SyncLog
 from integration.services.moysklad_api import MoySkladAPI
 
 logger = logging.getLogger(__name__)
+
+# Пауза между запросами (сек) — чтобы не превышать лимит МойСклад
+REQUEST_DELAY = 0.15
 
 EXCLUDED_CATEGORIES = [
     'Реклама',
@@ -36,10 +42,24 @@ class Command(BaseCommand):
 
         sync_log = SyncLog.objects.create(sync_type='products', status='started')
 
-        # API для скачивания фото
+        # HTTP-сессия с переиспользованием соединений и retry
         api = MoySkladAPI()
-        headers = api.auth if isinstance(api.auth, dict) else {}
-        auth = None if isinstance(api.auth, dict) else api.auth
+        self.session = requests.Session()
+
+        # Retry: 3 попытки с экспоненциальной задержкой при таймаутах и 429
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=2,
+            status_forcelist=[429, 500, 502, 503, 504],
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy, pool_connections=5, pool_maxsize=5)
+        self.session.mount('https://', adapter)
+        self.session.mount('http://', adapter)
+
+        if isinstance(api.auth, dict):
+            self.session.headers.update(api.auth)
+        else:
+            self.session.auth = api.auth
 
         # Все активные товары с данными МойСклад
         products = Product.objects.filter(
@@ -114,7 +134,7 @@ class Command(BaseCommand):
                         # Удаляем старые фото перед перекачкой
                         if local_image_count > 0:
                             card.images.all().delete()
-                        img_count = self._download_images(ms, card, headers, auth)
+                        img_count = self._download_images(ms, card)
                         if img_count > 0:
                             images_downloaded += img_count
 
@@ -147,7 +167,7 @@ class Command(BaseCommand):
     def _has_images(self, ms):
         return self._get_ms_image_count(ms) > 0
 
-    def _download_images(self, ms, card, headers, auth):
+    def _download_images(self, ms, card):
         raw = ms.raw_data or {}
         images_meta = raw.get('images', {}).get('meta', {})
 
@@ -159,7 +179,8 @@ class Command(BaseCommand):
             return 0
 
         try:
-            resp = requests.get(images_url, headers=headers, auth=auth, timeout=30)
+            time.sleep(REQUEST_DELAY)
+            resp = self.session.get(images_url, timeout=30)
             resp.raise_for_status()
             images_data = resp.json().get('rows', [])
         except Exception as e:
@@ -176,7 +197,8 @@ class Command(BaseCommand):
                 if not original_url:
                     continue
 
-                img_resp = requests.get(original_url, headers=headers, auth=auth, timeout=30)
+                time.sleep(REQUEST_DELAY)
+                img_resp = self.session.get(original_url, timeout=60)
                 if img_resp.status_code != 200:
                     continue
 
