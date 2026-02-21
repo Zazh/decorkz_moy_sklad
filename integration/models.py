@@ -16,10 +16,6 @@ class MoySkladProduct(models.Model):
     price = models.DecimalField("Цена", max_digits=12, decimal_places=2, default=0)
     cost = models.DecimalField("Себестоимость", max_digits=12, decimal_places=2, default=0)
 
-    # Остатки (сырые)
-    stock = models.IntegerField("Остаток", default=0)
-    reserve = models.IntegerField("Резерв", default=0)
-
     # Статусы
     is_active = models.BooleanField("Активен", default=True)
     archived = models.BooleanField("В архиве", default=False)
@@ -160,7 +156,6 @@ class SyncLog(models.Model):
     SYNC_TYPES = [
         ('products', 'Товары'),
         ('orders', 'Заказы'),
-        ('stock', 'Остатки'),
         ('categories', 'Категории'),
         ('brands', 'Бренды'),
     ]

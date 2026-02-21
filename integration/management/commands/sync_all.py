@@ -9,7 +9,6 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--no-images', action='store_true', help='Без скачивания фото')
-        parser.add_argument('--no-stock', action='store_true', help='Без обновления остатков')
 
     def handle(self, *args, **options):
         steps = [
@@ -20,9 +19,6 @@ class Command(BaseCommand):
             ('sync_cards', 'Карточки контента + фото', {'no_images': options['no_images']}),
             ('sync_prices', 'Синхронизация цен', {}),
         ]
-
-        if not options['no_stock']:
-            steps.append(('sync_stock', 'Обновление остатков', {}))
 
         total = len(steps)
 

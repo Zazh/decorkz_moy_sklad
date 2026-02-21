@@ -15,7 +15,6 @@ class ProductAdmin(admin.ModelAdmin):
         'moysklad_link',
         'card_link',
         'price_display',
-        'stock_display',
         'is_active'
     ]
     list_filter = ['is_active', 'brand', 'category']
@@ -51,11 +50,6 @@ class ProductAdmin(admin.ModelAdmin):
         return f"{obj.price:,.0f}" if obj.price else "—"
 
     price_display.short_description = "Цена"
-
-    def stock_display(self, obj):
-        return obj.stock if obj.stock > 0 else "—"
-
-    stock_display.short_description = "Остаток"
 
     def moysklad_link(self, obj):
         if obj.moysklad:

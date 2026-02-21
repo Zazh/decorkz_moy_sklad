@@ -1,0 +1,153 @@
+{% extends 'catalog/base.html' %}
+{% load catalog_tags %}
+
+{% block title %}
+  {% if category %}{{ category.title }}{% else %}Все товары{% endif %} — PIM Каталог
+{% endblock %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb" class="mb-2">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'catalog:dashboard' %}">Каталог</a></li>
+    {% if category %}
+      {% for bc in breadcrumbs %}
+        {% if forloop.last %}
+          <li class="breadcrumb-item active">{{ bc.title }}</li>
+        {% else %}
+          <li class="breadcrumb-item">
+            <a href="{% url 'catalog:product_list_category' slug=bc.slug %}">{{ bc.title }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <li class="breadcrumb-item active">Все товары</li>
+    {% endif %}
+  </ol>
+</nav>
+
+<!-- Заголовок -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h5 class="mb-0">
+    {% if category %}{{ category.title }}{% else %}Все товары{% endif %}
+    <span class="text-muted fs-6">({{ total_filtered }})</span>
+  </h5>
+  <div class="d-flex align-items-center gap-2">
+    {% if active_filters %}
+    <a href="{% if category %}{% url 'catalog:product_list_category' slug=category.slug %}{% else %}{% url 'catalog:product_list_all' %}{% endif %}"
+       class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-x-circle"></i> Сбросить фильтры
+    </a>
+    {% endif %}
+    <select class="form-select form-select-sm" style="width: auto;"
+            onchange="window.location.href=this.value">
+      <option value="{% query_string sort='article' %}" {% if sort == 'article' %}selected{% endif %}>Артикул &uarr;</option>
+      <option value="{% query_string sort='-article' %}" {% if sort == '-article' %}selected{% endif %}>Артикул &darr;</option>
+      <option value="{% query_string sort='title' %}" {% if sort == 'title' %}selected{% endif %}>Название &uarr;</option>
+      <option value="{% query_string sort='-title' %}" {% if sort == '-title' %}selected{% endif %}>Название &darr;</option>
+      <option value="{% query_string sort='price' %}" {% if sort == 'price' %}selected{% endif %}>Цена &uarr;</option>
+      <option value="{% query_string sort='-price' %}" {% if sort == '-price' %}selected{% endif %}>Цена &darr;</option>
+    </select>
+  </div>
+</div>
+
+<!-- Фильтры горизонтально -->
+{% include 'catalog/_partials/_filter_bar.html' %}
+
+<!-- Таблица товаров -->
+<div class="table-responsive">
+  <table class="table table-sm table-hover table-striped">
+    <thead class="table-light">
+      <tr>
+        <th></th>
+        <th>Артикул</th>
+        <th>Название</th>
+        <th>Бренд</th>
+        <th>Категория</th>
+        <th class="text-end">Цена</th>
+        <th class="text-center">Фото</th>
+        <th class="text-center">Атр.</th>
+        <th>Полнота</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in page_obj %}
+      <tr>
+        <td>
+          {% if product.card and product.image_count > 0 %}
+            {% with main_img=product.card.get_main_image %}
+              {% if main_img %}
+                <img src="/media/{{ main_img.image }}" class="product-thumb" alt="">
+              {% endif %}
+            {% endwith %}
+          {% else %}
+            <div class="product-thumb d-flex align-items-center justify-content-center text-muted">
+              <i class="bi bi-image"></i>
+            </div>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'catalog:product_detail' pk=product.pk %}">
+            <code>{{ product.article }}</code>
+          </a>
+        </td>
+        <td class="wrap">
+          <a href="{% url 'catalog:product_detail' pk=product.pk %}">
+            {{ product.title|truncatechars:60 }}
+          </a>
+        </td>
+        <td>
+          {% if product.brand %}
+            <a href="?brand={{ product.brand.slug }}">{{ product.brand.name|truncatechars:20 }}</a>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if product.category %}
+            <a href="{% url 'catalog:product_list_category' slug=product.category.slug %}">
+              {{ product.category.title|truncatechars:20 }}
+            </a>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+        <td class="text-end">
+          {% if product.rrp_price %}
+            {{ product.rrp_price|format_price }}
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+        <td class="text-center">
+          {% if product.image_count > 0 %}
+            <span class="badge bg-success">{{ product.image_count }}</span>
+          {% else %}
+            <span class="badge bg-light text-muted">0</span>
+          {% endif %}
+        </td>
+        <td class="text-center">
+          {% if product.attr_count > 0 %}
+            <span class="badge bg-info">{{ product.attr_count }}</span>
+          {% else %}
+            <span class="badge bg-light text-muted">0</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if product.card %}<i class="bi bi-check text-success"></i>{% else %}<i class="bi bi-x text-danger"></i>{% endif %}
+          {% if product.image_count > 0 %}<i class="bi bi-image text-success"></i>{% else %}<i class="bi bi-image text-danger"></i>{% endif %}
+          {% if product.rrp_price %}<i class="bi bi-currency-dollar text-success"></i>{% else %}<i class="bi bi-currency-dollar text-danger"></i>{% endif %}
+          {% if product.brand %}<i class="bi bi-tag text-success"></i>{% else %}<i class="bi bi-tag text-danger"></i>{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9" class="text-center text-muted py-4">Товары не найдены</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include 'catalog/_partials/_pagination.html' %}
+{% endblock %}

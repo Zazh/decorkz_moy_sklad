@@ -188,7 +188,7 @@ class Command(BaseCommand):
             return 0
 
         count = 0
-        article = ms.article or ms.code or 'product'
+        article = ms.code or ms.article or 'product'
 
         for i, img_data in enumerate(images_data):
             try:

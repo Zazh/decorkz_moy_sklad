@@ -160,13 +160,6 @@ class Product(models.Model):
         return p.price if p else None
 
     @property
-    def stock(self):
-        """Доступный остаток из МойСклад"""
-        if self.moysklad:
-            return max(0, self.moysklad.stock - self.moysklad.reserve)
-        return 0
-
-    @property
     def sku(self):
         """SKU из МойСклад"""
         if self.moysklad:

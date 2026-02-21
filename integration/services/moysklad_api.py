@@ -58,14 +58,6 @@ class MoySkladAPI:
         """Обновление товара"""
         return self._make_request('PUT', f'entity/product/{product_id}', json=data)
 
-    def get_stock(self, limit=100, offset=0):
-        """Получение остатков товаров"""
-        params = {
-            'limit': limit,
-            'offset': offset
-        }
-        return self._make_request('GET', 'report/stock/all', params=params)
-
     def get_orders(self, limit=100, offset=0):
         """Получение списка заказов"""
         params = {

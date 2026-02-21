@@ -1,0 +1,19 @@
+{% for cat in categories %}
+<a href="{% url 'catalog:product_list_category' slug=cat.slug %}"
+   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+  <span>
+    {% if cat.children_list %}
+      <i class="bi bi-folder2"></i>
+    {% else %}
+      <i class="bi bi-folder"></i>
+    {% endif %}
+    {{ cat.title }}
+  </span>
+  <span class="badge bg-secondary">{{ cat.product_count }}</span>
+</a>
+{% if cat.children_list %}
+  <div class="ms-3">
+    {% include 'catalog/_partials/_category_tree.html' with categories=cat.children_list %}
+  </div>
+{% endif %}
+{% endfor %}

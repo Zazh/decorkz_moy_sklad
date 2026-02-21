@@ -1,0 +1,255 @@
+{% extends 'catalog/base.html' %}
+{% load catalog_tags %}
+
+{% block title %}{{ product.title }} — PIM Каталог{% endblock %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'catalog:dashboard' %}">Каталог</a></li>
+    {% if product.category %}
+      {% if product.category.parent %}
+        <li class="breadcrumb-item">
+          <a href="{% url 'catalog:product_list_category' slug=product.category.parent.slug %}">{{ product.category.parent.title }}</a>
+        </li>
+      {% endif %}
+      <li class="breadcrumb-item">
+        <a href="{% url 'catalog:product_list_category' slug=product.category.slug %}">{{ product.category.title }}</a>
+      </li>
+    {% endif %}
+    <li class="breadcrumb-item active">{{ product.article }}</li>
+  </ol>
+</nav>
+
+<div class="row">
+  <!-- Левая колонка: фото + описание -->
+  <div class="col-md-8">
+    <h4>{{ product.title }}</h4>
+    <p class="text-muted">
+      Артикул: <code>{{ product.article }}</code>
+      {% if product.brand %} | Бренд: <strong>{{ product.brand.name }}</strong>{% endif %}
+      {% if product.category %} | Категория: {{ product.category.title }}{% endif %}
+    </p>
+
+    <!-- Фото -->
+    {% if images %}
+    <div class="mb-4">
+      <h6>Фото ({{ images|length }})</h6>
+      <div class="row g-2">
+        {% for img in images %}
+        <div class="col-3">
+          <div class="card">
+            <img src="/media/{{ img.image }}" class="card-img-top" alt="{{ img.alt }}"
+                 style="height: 200px; object-fit: contain; background: #f8f9fa; cursor: pointer;"
+                 onclick="document.getElementById('main-img').src=this.src">
+            <div class="card-body p-1 text-center">
+              <small class="text-muted">
+                {% if img.is_main %}<span class="badge bg-primary">главное</span>{% endif %}
+                #{{ img.sort_order }}
+              </small>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% with main=images.0 %}
+      {% if main %}
+      <div class="mt-3 text-center">
+        <img id="main-img" src="/media/{{ main.image }}" alt="{{ main.alt }}"
+             style="max-height: 400px; max-width: 100%; object-fit: contain; background: #f8f9fa;" class="border rounded p-2">
+      </div>
+      {% endif %}
+      {% endwith %}
+    </div>
+    {% else %}
+    <div class="alert alert-warning mb-4">
+      <i class="bi bi-image"></i> Нет фото
+    </div>
+    {% endif %}
+
+    <!-- Описание -->
+    {% if product.card %}
+    <div class="mb-4">
+      {% if product.card.short_description %}
+      <h6>Короткое описание</h6>
+      <p>{{ product.card.short_description }}</p>
+      {% endif %}
+
+      {% if product.card.description %}
+      <h6>Описание</h6>
+      <div class="border rounded p-3 bg-light" style="max-height: 400px; overflow-y: auto;">
+        {{ product.card.description|linebreaksbr }}
+      </div>
+      {% else %}
+      <div class="alert alert-warning"><i class="bi bi-text-paragraph"></i> Нет описания</div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Атрибуты -->
+    {% if attributes %}
+    <div class="mb-4">
+      <h6>Атрибуты ({{ attributes|length }})</h6>
+      <table class="table table-sm table-bordered">
+        <thead class="table-light">
+          <tr><th>Атрибут</th><th>Значение</th><th>Ед.</th></tr>
+        </thead>
+        <tbody>
+          {% for attr in attributes %}
+          <tr>
+            <td>{{ attr.attribute.name }}</td>
+            <td>{{ attr.value }}</td>
+            <td>
+              {% if attr.attribute.default_unit %}{{ attr.attribute.default_unit.symbol }}{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Правая колонка: цены, полнота, МС-данные -->
+  <div class="col-md-4">
+    <!-- Полнота данных -->
+    <div class="card mb-3">
+      <div class="card-header"><strong>Полнота данных</strong></div>
+      <div class="list-group list-group-flush">
+        {% for label, ok in completeness.items %}
+        <div class="list-group-item d-flex justify-content-between align-items-center py-1">
+          {{ label }}
+          {% if ok %}
+            <i class="bi bi-check-circle-fill text-success"></i>
+          {% else %}
+            <i class="bi bi-x-circle-fill text-danger"></i>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Цены -->
+    <div class="card mb-3">
+      <div class="card-header"><strong>Цены</strong></div>
+      {% if prices %}
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr><th>Тип цены</th><th class="text-end">Цена</th></tr>
+        </thead>
+        <tbody>
+          {% for p in prices %}
+          <tr>
+            <td>{{ p.price_type.name }}</td>
+            <td class="text-end">
+              <strong>{{ p.price|format_price }}</strong>
+              {% if p.old_price %}
+                <br><small class="text-muted text-decoration-line-through">{{ p.old_price|format_price }}</small>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="card-body text-muted">Нет цен</div>
+      {% endif %}
+    </div>
+
+    <!-- Информация МойСклад -->
+    {% if product.moysklad %}
+    <div class="card mb-3">
+      <div class="card-header"><strong>МойСклад</strong></div>
+      <div class="list-group list-group-flush small">
+        <div class="list-group-item py-1">
+          <span class="text-muted">ID:</span> <code>{{ product.moysklad.moysklad_id|truncatechars:20 }}</code>
+        </div>
+        {% if product.moysklad.code %}
+        <div class="list-group-item py-1">
+          <span class="text-muted">Код:</span> {{ product.moysklad.code }}
+        </div>
+        {% endif %}
+        {% if product.moysklad.barcode %}
+        <div class="list-group-item py-1">
+          <span class="text-muted">Штрихкод:</span> {{ product.moysklad.barcode }}
+        </div>
+        {% endif %}
+        {% if product.moysklad.path_name %}
+        <div class="list-group-item py-1">
+          <span class="text-muted">Путь:</span> {{ product.moysklad.path_name }}
+        </div>
+        {% endif %}
+        {% if product.moysklad.site_category %}
+        <div class="list-group-item py-1">
+          <span class="text-muted">Категория сайт:</span> {{ product.moysklad.site_category }}
+        </div>
+        {% endif %}
+        {% if product.moysklad.site_subcategory %}
+        <div class="list-group-item py-1">
+          <span class="text-muted">Подкатегория:</span> {{ product.moysklad.site_subcategory }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Сырые данные МС -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <a class="text-decoration-none" data-bs-toggle="collapse" href="#rawData">
+          <strong>Сырые данные МС</strong> <i class="bi bi-chevron-down"></i>
+        </a>
+      </div>
+      <div id="rawData" class="collapse">
+        <div class="card-body p-2">
+          <pre class="mb-0 small" style="max-height: 500px; overflow: auto;">{{ product.moysklad.raw_data|format_json }}</pre>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Карточка -->
+    {% if product.card %}
+    <div class="card mb-3">
+      <div class="card-header"><strong>Карточка</strong></div>
+      <div class="list-group list-group-flush small">
+        <div class="list-group-item py-1">
+          <span class="text-muted">Источник:</span> {{ product.card.get_source_display }}
+        </div>
+        <div class="list-group-item py-1">
+          <span class="text-muted">Создана:</span> {{ product.card.created_at|date:"d.m.Y H:i" }}
+        </div>
+        <div class="list-group-item py-1">
+          <span class="text-muted">Обновлена:</span> {{ product.card.updated_at|date:"d.m.Y H:i" }}
+        </div>
+        {% if product.card.scraped_source_url %}
+        <div class="list-group-item py-1">
+          <span class="text-muted">Источник URL:</span>
+          <a href="{{ product.card.scraped_source_url }}" target="_blank">ссылка</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Ссылки -->
+    <div class="card">
+      <div class="card-body">
+        <a href="/admin/products/product/{{ product.pk }}/change/" class="btn btn-sm btn-outline-secondary w-100 mb-1">
+          <i class="bi bi-pencil"></i> Редактировать в админке
+        </a>
+        {% if product.moysklad %}
+        <a href="/admin/integration/moyskladproduct/{{ product.moysklad.pk }}/change/" class="btn btn-sm btn-outline-secondary w-100 mb-1">
+          <i class="bi bi-database"></i> МойСклад в админке
+        </a>
+        {% endif %}
+        {% if product.card %}
+        <a href="/admin/cards/productcard/{{ product.card.pk }}/change/" class="btn btn-sm btn-outline-secondary w-100">
+          <i class="bi bi-card-text"></i> Карточка в админке
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% load catalog_tags %}
+<div class="card filter-sidebar">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong><i class="bi bi-funnel"></i> Фильтры</strong>
+    {% if active_filters %}
+    <a href="{% if category %}{% url 'catalog:product_list_category' slug=category.slug %}{% else %}{% url 'catalog:product_list_all' %}{% endif %}"
+       class="btn btn-sm btn-outline-secondary">Сбросить</a>
+    {% endif %}
+  </div>
+  <div class="card-body p-2">
+    <form method="get" id="filter-form">
+
+      <!-- Поиск -->
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Поиск</label>
+        <input type="text" name="q" class="form-control form-control-sm"
+               value="{{ active_filters.q|default:'' }}" placeholder="Артикул или название...">
+      </div>
+
+      <!-- Фото -->
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Фото</label>
+        <div class="form-check">
+          <input type="radio" name="has_photo" value="" class="form-check-input" id="photo_all"
+                 {% if not active_filters.has_photo %}checked{% endif %}>
+          <label class="form-check-label" for="photo_all">Все <span class="text-muted">({{ sidebar.total }})</span></label>
+        </div>
+        <div class="form-check">
+          <input type="radio" name="has_photo" value="1" class="form-check-input" id="photo_yes"
+                 {% if active_filters.has_photo == '1' %}checked{% endif %}>
+          <label class="form-check-label" for="photo_yes">С фото <span class="text-muted">({{ sidebar.has_photo }})</span></label>
+        </div>
+        <div class="form-check">
+          <input type="radio" name="has_photo" value="0" class="form-check-input" id="photo_no"
+                 {% if active_filters.has_photo == '0' %}checked{% endif %}>
+          <label class="form-check-label" for="photo_no">Без фото <span class="text-muted">({{ sidebar.no_photo }})</span></label>
+        </div>
+      </div>
+
+      <!-- Цена -->
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Цена (РРЦ)</label>
+        <div class="form-check">
+          <input type="radio" name="has_price" value="" class="form-check-input" id="price_all"
+                 {% if not active_filters.has_price %}checked{% endif %}>
+          <label class="form-check-label" for="price_all">Все</label>
+        </div>
+        <div class="form-check">
+          <input type="radio" name="has_price" value="1" class="form-check-input" id="price_yes"
+                 {% if active_filters.has_price == '1' %}checked{% endif %}>
+          <label class="form-check-label" for="price_yes">С ценой <span class="text-muted">({{ sidebar.has_price }})</span></label>
+        </div>
+        <div class="form-check">
+          <input type="radio" name="has_price" value="0" class="form-check-input" id="price_no"
+                 {% if active_filters.has_price == '0' %}checked{% endif %}>
+          <label class="form-check-label" for="price_no">Без цены <span class="text-muted">({{ sidebar.no_price }})</span></label>
+        </div>
+        <div class="row g-1 mt-1">
+          <div class="col-6">
+            <input type="number" name="price_min" class="form-control form-control-sm"
+                   value="{{ active_filters.price_min|default:'' }}" placeholder="от">
+          </div>
+          <div class="col-6">
+            <input type="number" name="price_max" class="form-control form-control-sm"
+                   value="{{ active_filters.price_max|default:'' }}" placeholder="до">
+          </div>
+        </div>
+      </div>
+
+      <!-- Описание -->
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Описание</label>
+        <div class="form-check">
+          <input type="radio" name="has_description" value="" class="form-check-input" id="desc_all"
+                 {% if not active_filters.has_description %}checked{% endif %}>
+          <label class="form-check-label" for="desc_all">Все</label>
+        </div>
+        <div class="form-check">
+          <input type="radio" name="has_description" value="1" class="form-check-input" id="desc_yes"
+                 {% if active_filters.has_description == '1' %}checked{% endif %}>
+          <label class="form-check-label" for="desc_yes">С описанием <span class="text-muted">({{ sidebar.has_desc }})</span></label>
+        </div>
+        <div class="form-check">
+          <input type="radio" name="has_description" value="0" class="form-check-input" id="desc_no"
+                 {% if active_filters.has_description == '0' %}checked{% endif %}>
+          <label class="form-check-label" for="desc_no">Без описания <span class="text-muted">({{ sidebar.no_desc }})</span></label>
+        </div>
+      </div>
+
+      <!-- Атрибуты -->
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Атрибуты</label>
+        <div class="form-check">
+          <input type="radio" name="has_attributes" value="" class="form-check-input" id="attr_all"
+                 {% if not active_filters.has_attributes %}checked{% endif %}>
+          <label class="form-check-label" for="attr_all">Все</label>
+        </div>
+        <div class="form-check">
+          <input type="radio" name="has_attributes" value="1" class="form-check-input" id="attr_yes"
+                 {% if active_filters.has_attributes == '1' %}checked{% endif %}>
+          <label class="form-check-label" for="attr_yes">С атрибутами</label>
+        </div>
+        <div class="form-check">
+          <input type="radio" name="has_attributes" value="0" class="form-check-input" id="attr_no"
+                 {% if active_filters.has_attributes == '0' %}checked{% endif %}>
+          <label class="form-check-label" for="attr_no">Без атрибутов</label>
+        </div>
+      </div>
+
+      <!-- Источник -->
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Источник</label>
+        <div class="form-check">
+          <input type="radio" name="source" value="" class="form-check-input" id="src_all"
+                 {% if not active_filters.source %}checked{% endif %}>
+          <label class="form-check-label" for="src_all">Все</label>
+        </div>
+        {% for src in sidebar.source_counts %}
+        <div class="form-check">
+          <input type="radio" name="source" value="{{ src.card__source }}" class="form-check-input" id="src_{{ src.card__source }}"
+                 {% if active_filters.source == src.card__source %}checked{% endif %}>
+          <label class="form-check-label" for="src_{{ src.card__source }}">{{ src.card__source }} <span class="text-muted">({{ src.count }})</span></label>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Бренд -->
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Бренд</label>
+        <div class="form-check">
+          <input type="radio" name="brand" value="" class="form-check-input" id="brand_all"
+                 {% if not active_filters.brand %}checked{% endif %}>
+          <label class="form-check-label" for="brand_all">Все</label>
+        </div>
+        <div class="form-check">
+          <input type="radio" name="brand" value="none" class="form-check-input" id="brand_none"
+                 {% if active_filters.brand and 'none' in active_filters.brand %}checked{% endif %}>
+          <label class="form-check-label" for="brand_none">Без бренда <span class="text-muted">({{ sidebar.no_brand_count }})</span></label>
+        </div>
+        <div style="max-height: 200px; overflow-y: auto;">
+        {% for b in sidebar.brand_counts %}
+        <div class="form-check">
+          <input type="radio" name="brand" value="{{ b.brand__slug }}" class="form-check-input" id="brand_{{ b.brand__slug }}"
+                 {% if active_filters.brand and b.brand__slug in active_filters.brand %}checked{% endif %}>
+          <label class="form-check-label" for="brand_{{ b.brand__slug }}">{{ b.brand__name }} <span class="text-muted">({{ b.count }})</span></label>
+        </div>
+        {% endfor %}
+        </div>
+      </div>
+
+      <!-- Подкатегории -->
+      {% if sidebar.subcategories %}
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Подкатегории</label>
+        {% for sub in sidebar.subcategories %}
+        <a href="{% url 'catalog:product_list_category' slug=sub.category__slug %}"
+           class="d-block small py-1">
+          {{ sub.category__title }} <span class="text-muted">({{ sub.count }})</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary btn-sm w-100">Применить</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Автоматический submit при выборе radio/checkbox
+document.getElementById('filter-form').addEventListener('change', function(e) {
+  if (e.target.type === 'radio' || e.target.type === 'checkbox') {
+    this.submit();
+  }
+});
+</script>

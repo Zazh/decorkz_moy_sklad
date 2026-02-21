@@ -95,8 +95,8 @@ class PIMSyncService:
             if path_name.startswith(excluded):
                 return None
 
-        # Артикул
-        article = ms_product.article or ms_product.code or ms_product.moysklad_id
+        # Артикул: приоритет — код МойСклад, потом артикул
+        article = ms_product.code or ms_product.article or ms_product.moysklad_id
         if not article:
             logger.warning(f"Нет артикула для {ms_product.name}")
             return None

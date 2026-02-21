@@ -6,7 +6,7 @@ from .models import MoySkladProduct, MoySkladCategory, MoySkladBrand, MoySkladOr
 
 @admin.register(MoySkladProduct)
 class MoySkladProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'article', 'code', 'price', 'stock', 'site_category', 'site_subcategory', 'is_active', 'archived', 'last_sync']
+    list_display = ['name', 'article', 'code', 'price', 'site_category', 'site_subcategory', 'is_active', 'archived', 'last_sync']
     list_filter = ['is_active', 'archived', 'site_category', 'site_subcategory', 'created_at']
     search_fields = ['name', 'article', 'code', 'moysklad_id', 'barcode']
     readonly_fields = ['moysklad_id', 'raw_data', 'created_at', 'updated_at', 'last_sync']
@@ -21,8 +21,8 @@ class MoySkladProductAdmin(admin.ModelAdmin):
         ('Категории сайта', {
             'fields': ('site_category', 'site_subcategory')
         }),
-        ('Цены и остатки', {
-            'fields': ('price', 'cost', 'stock', 'reserve')
+        ('Цены', {
+            'fields': ('price', 'cost')
         }),
         ('Статус', {
             'fields': ('is_active', 'archived')

@@ -1,0 +1,109 @@
+{% load catalog_tags %}
+<div class="card mb-3">
+  <div class="card-body py-2 px-3">
+    <form method="get" id="filter-form">
+      <div class="row g-2 align-items-end">
+
+        <!-- Поиск -->
+        <div class="col-md-2">
+          <label class="form-label small mb-0 fw-bold">Поиск</label>
+          <input type="text" name="q" class="form-control form-control-sm"
+                 value="{{ active_filters.q|default:'' }}" placeholder="Артикул / название...">
+        </div>
+
+        <!-- Фото -->
+        <div class="col-auto">
+          <label class="form-label small mb-0 fw-bold">Фото</label>
+          <select name="has_photo" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Все ({{ sidebar.total }})</option>
+            <option value="1" {% if active_filters.has_photo == '1' %}selected{% endif %}>С фото ({{ sidebar.has_photo }})</option>
+            <option value="0" {% if active_filters.has_photo == '0' %}selected{% endif %}>Без фото ({{ sidebar.no_photo }})</option>
+          </select>
+        </div>
+
+        <!-- Цена -->
+        <div class="col-auto">
+          <label class="form-label small mb-0 fw-bold">Цена</label>
+          <select name="has_price" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Все</option>
+            <option value="1" {% if active_filters.has_price == '1' %}selected{% endif %}>С ценой ({{ sidebar.has_price }})</option>
+            <option value="0" {% if active_filters.has_price == '0' %}selected{% endif %}>Без цены ({{ sidebar.no_price }})</option>
+          </select>
+        </div>
+
+        <!-- Диапазон цен -->
+        <div class="col-auto">
+          <label class="form-label small mb-0 fw-bold">Цена от-до</label>
+          <div class="d-flex gap-1">
+            <input type="number" name="price_min" class="form-control form-control-sm" style="width: 80px;"
+                   value="{{ active_filters.price_min|default:'' }}" placeholder="от">
+            <input type="number" name="price_max" class="form-control form-control-sm" style="width: 80px;"
+                   value="{{ active_filters.price_max|default:'' }}" placeholder="до">
+          </div>
+        </div>
+
+        <!-- Бренд -->
+        <div class="col-auto">
+          <label class="form-label small mb-0 fw-bold">Бренд</label>
+          <select name="brand" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Все</option>
+            <option value="none" {% if active_filters.brand and 'none' in active_filters.brand %}selected{% endif %}>Без бренда ({{ sidebar.no_brand_count }})</option>
+            {% for b in sidebar.brand_counts %}
+            <option value="{{ b.brand__slug }}" {% if active_filters.brand and b.brand__slug in active_filters.brand %}selected{% endif %}>{{ b.brand__name }} ({{ b.count }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Описание -->
+        <div class="col-auto">
+          <label class="form-label small mb-0 fw-bold">Описание</label>
+          <select name="has_description" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Все</option>
+            <option value="1" {% if active_filters.has_description == '1' %}selected{% endif %}>Есть ({{ sidebar.has_desc }})</option>
+            <option value="0" {% if active_filters.has_description == '0' %}selected{% endif %}>Нет ({{ sidebar.no_desc }})</option>
+          </select>
+        </div>
+
+        <!-- Атрибуты -->
+        <div class="col-auto">
+          <label class="form-label small mb-0 fw-bold">Атрибуты</label>
+          <select name="has_attributes" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Все</option>
+            <option value="1" {% if active_filters.has_attributes == '1' %}selected{% endif %}>Есть</option>
+            <option value="0" {% if active_filters.has_attributes == '0' %}selected{% endif %}>Нет</option>
+          </select>
+        </div>
+
+        <!-- Подкатегории -->
+        {% if sidebar.subcategories %}
+        <div class="col-auto">
+          <label class="form-label small mb-0 fw-bold">Подкатегория</label>
+          <select class="form-select form-select-sm" onchange="if(this.value) window.location.href=this.value">
+            <option value="">Все</option>
+            {% for sub in sidebar.subcategories %}
+            <option value="{% url 'catalog:product_list_category' slug=sub.category__slug %}">{{ sub.category__title }} ({{ sub.count }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+        <!-- Кнопка -->
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('filter-form').addEventListener('submit', function(e) {
+  // Удаляем пустые поля перед отправкой
+  this.querySelectorAll('input, select').forEach(function(el) {
+    if (!el.value) el.disabled = true;
+  });
+});
+</script>

@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'cards',
     'pricing',
     'mapping',
+    'catalog',
 
     #legacy
     'legacy'

@@ -1,0 +1,113 @@
+{% extends 'catalog/base.html' %}
+{% load catalog_tags %}
+
+{% block title %}PIM Каталог — Дашборд{% endblock %}
+
+{% block content %}
+<h4 class="mb-3">Дашборд</h4>
+
+<!-- Статистика -->
+<div class="row g-3 mb-4">
+  <div class="col-md-2">
+    <div class="card stat-card stat-info">
+      <div class="card-body py-2">
+        <div class="text-muted small">Всего товаров</div>
+        <div class="fs-4 fw-bold">{{ total }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card stat-card {% if with_images == total %}stat-good{% elif with_images > 0 %}stat-warn{% else %}stat-bad{% endif %}">
+      <div class="card-body py-2">
+        <div class="text-muted small">С фото</div>
+        <div class="fs-4 fw-bold">{{ with_images }}</div>
+        <div class="text-muted small">{{ with_images|percent:total }}%</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card stat-card {% if with_price == total %}stat-good{% elif with_price > 0 %}stat-warn{% else %}stat-bad{% endif %}">
+      <div class="card-body py-2">
+        <div class="text-muted small">С ценой</div>
+        <div class="fs-4 fw-bold">{{ with_price }}</div>
+        <div class="text-muted small">{{ with_price|percent:total }}%</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card stat-card {% if stats.with_brand == total %}stat-good{% elif stats.with_brand > 0 %}stat-warn{% else %}stat-bad{% endif %}">
+      <div class="card-body py-2">
+        <div class="text-muted small">С брендом</div>
+        <div class="fs-4 fw-bold">{{ stats.with_brand }}</div>
+        <div class="text-muted small">{{ stats.with_brand|percent:total }}%</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card stat-card {% if with_description == total %}stat-good{% elif with_description > 0 %}stat-warn{% else %}stat-bad{% endif %}">
+      <div class="card-body py-2">
+        <div class="text-muted small">С описанием</div>
+        <div class="fs-4 fw-bold">{{ with_description }}</div>
+        <div class="text-muted small">{{ with_description|percent:total }}%</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card stat-card stat-info">
+      <div class="card-body py-2">
+        <div class="text-muted small">С карточкой</div>
+        <div class="fs-4 fw-bold">{{ stats.with_card }}</div>
+        <div class="text-muted small">{{ stats.with_card|percent:total }}%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Категории -->
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <strong>Категории</strong>
+        <a href="{% url 'catalog:product_list_all' %}" class="btn btn-sm btn-outline-primary">
+          Все товары ({{ total }})
+        </a>
+      </div>
+      <div class="list-group list-group-flush category-tree">
+        {% include 'catalog/_partials/_category_tree.html' with categories=cat_tree %}
+
+        {% if no_category_count %}
+        <a href="{% url 'catalog:product_list_all' %}?has_category=0"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center list-group-item-warning">
+          <span><i class="bi bi-exclamation-triangle"></i> Без категории</span>
+          <span class="badge bg-warning text-dark">{{ no_category_count }}</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header"><strong>Быстрые фильтры</strong></div>
+      <div class="list-group list-group-flush">
+        <a href="{% url 'catalog:product_list_all' %}?has_photo=0" class="list-group-item list-group-item-action">
+          <i class="bi bi-image"></i> Товары без фото
+        </a>
+        <a href="{% url 'catalog:product_list_all' %}?has_price=0" class="list-group-item list-group-item-action">
+          <i class="bi bi-currency-dollar"></i> Товары без цены
+        </a>
+        <a href="{% url 'catalog:product_list_all' %}?brand=none" class="list-group-item list-group-item-action">
+          <i class="bi bi-tag"></i> Товары без бренда
+        </a>
+        <a href="{% url 'catalog:product_list_all' %}?has_description=0" class="list-group-item list-group-item-action">
+          <i class="bi bi-text-paragraph"></i> Товары без описания
+        </a>
+        <a href="{% url 'catalog:product_list_all' %}?has_attributes=0" class="list-group-item list-group-item-action">
+          <i class="bi bi-list-check"></i> Товары без атрибутов
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
