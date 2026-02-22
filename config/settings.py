@@ -2,13 +2,20 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=False)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
+
 SECRET_KEY = os.getenv('SECRET_KEY', '')
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,moysklad_integration').split(',')
+
+# CSRF
+CSRF_TRUSTED_ORIGINS = [
+    origin for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -32,10 +39,11 @@ INSTALLED_APPS = [
     'pricing',
     'mapping',
     'catalog',
-
-    #legacy
-    'legacy'
 ]
+
+# Legacy app — only in development
+if DJANGO_ENV != 'production':
+    INSTALLED_APPS.append('legacy')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -72,21 +80,24 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'db'),
+        'NAME': os.getenv('DB_NAME', 'pim_db'),
         'USER': os.getenv('DB_USER', 'postgresuser'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'kb971033'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', 'db'),
         'PORT': os.getenv('DB_PORT', '5432'),
     },
-    'legacy': {
+}
+
+# Legacy database — only in development
+if DJANGO_ENV != 'production':
+    DATABASES['legacy'] = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('LEGACY_DB_NAME', 'decorkz_db'),
         'USER': os.getenv('LEGACY_DB_USER', 'postgresuser'),
-        'PASSWORD': os.getenv('LEGACY_DB_PASSWORD', 'kb971033'),
+        'PASSWORD': os.getenv('LEGACY_DB_PASSWORD', ''),
         'HOST': os.getenv('LEGACY_DB_HOST', 'db'),
         'PORT': os.getenv('LEGACY_DB_PORT', '5432'),
     }
-}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -133,3 +144,16 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API для интеграции с МойСклад',
     'VERSION': '1.0.0',
 }
+
+# Production security settings
+if DJANGO_ENV == 'production':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
