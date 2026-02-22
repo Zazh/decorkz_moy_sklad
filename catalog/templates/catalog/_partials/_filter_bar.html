@@ -14,7 +14,7 @@
         <!-- Фото -->
         <div class="col-auto">
           <label class="form-label small mb-0 fw-bold">Фото</label>
-          <select name="has_photo" class="form-select form-select-sm" onchange="this.form.submit()">
+          <select name="has_photo" class="form-select form-select-sm">
             <option value="">Все ({{ sidebar.total }})</option>
             <option value="1" {% if active_filters.has_photo == '1' %}selected{% endif %}>С фото ({{ sidebar.has_photo }})</option>
             <option value="0" {% if active_filters.has_photo == '0' %}selected{% endif %}>Без фото ({{ sidebar.no_photo }})</option>
@@ -24,7 +24,7 @@
         <!-- Цена -->
         <div class="col-auto">
           <label class="form-label small mb-0 fw-bold">Цена</label>
-          <select name="has_price" class="form-select form-select-sm" onchange="this.form.submit()">
+          <select name="has_price" class="form-select form-select-sm">
             <option value="">Все</option>
             <option value="1" {% if active_filters.has_price == '1' %}selected{% endif %}>С ценой ({{ sidebar.has_price }})</option>
             <option value="0" {% if active_filters.has_price == '0' %}selected{% endif %}>Без цены ({{ sidebar.no_price }})</option>
@@ -45,7 +45,7 @@
         <!-- Бренд -->
         <div class="col-auto">
           <label class="form-label small mb-0 fw-bold">Бренд</label>
-          <select name="brand" class="form-select form-select-sm" onchange="this.form.submit()">
+          <select name="brand" class="form-select form-select-sm">
             <option value="">Все</option>
             <option value="none" {% if active_filters.brand and 'none' in active_filters.brand %}selected{% endif %}>Без бренда ({{ sidebar.no_brand_count }})</option>
             {% for b in sidebar.brand_counts %}
@@ -57,7 +57,7 @@
         <!-- Описание -->
         <div class="col-auto">
           <label class="form-label small mb-0 fw-bold">Описание</label>
-          <select name="has_description" class="form-select form-select-sm" onchange="this.form.submit()">
+          <select name="has_description" class="form-select form-select-sm">
             <option value="">Все</option>
             <option value="1" {% if active_filters.has_description == '1' %}selected{% endif %}>Есть ({{ sidebar.has_desc }})</option>
             <option value="0" {% if active_filters.has_description == '0' %}selected{% endif %}>Нет ({{ sidebar.no_desc }})</option>
@@ -67,7 +67,7 @@
         <!-- Атрибуты -->
         <div class="col-auto">
           <label class="form-label small mb-0 fw-bold">Атрибуты</label>
-          <select name="has_attributes" class="form-select form-select-sm" onchange="this.form.submit()">
+          <select name="has_attributes" class="form-select form-select-sm">
             <option value="">Все</option>
             <option value="1" {% if active_filters.has_attributes == '1' %}selected{% endif %}>Есть</option>
             <option value="0" {% if active_filters.has_attributes == '0' %}selected{% endif %}>Нет</option>

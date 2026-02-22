@@ -42,7 +42,8 @@
           <div class="card">
             <img src="/media/{{ img.image }}" class="card-img-top" alt="{{ img.alt }}"
                  style="height: 200px; object-fit: contain; background: #f8f9fa; cursor: pointer;"
-                 onclick="document.getElementById('main-img').src=this.src">
+                 data-bs-toggle="modal" data-bs-target="#photoModal"
+                 onclick="document.getElementById('modal-img').src=this.src">
             <div class="card-body p-1 text-center">
               <small class="text-muted">
                 {% if img.is_main %}<span class="badge bg-primary">главное</span>{% endif %}
@@ -53,14 +54,17 @@
         </div>
         {% endfor %}
       </div>
-      {% with main=images.0 %}
-      {% if main %}
-      <div class="mt-3 text-center">
-        <img id="main-img" src="/media/{{ main.image }}" alt="{{ main.alt }}"
-             style="max-height: 400px; max-width: 100%; object-fit: contain; background: #f8f9fa;" class="border rounded p-2">
+    </div>
+    <!-- Модальное окно для фото -->
+    <div class="modal fade" id="photoModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body p-0 text-center" style="background: #f8f9fa;">
+            <img id="modal-img" src="" alt="Фото товара"
+                 style="max-width: 100%; max-height: 80vh; object-fit: contain;">
+          </div>
+        </div>
       </div>
-      {% endif %}
-      {% endwith %}
     </div>
     {% else %}
     <div class="alert alert-warning mb-4">
