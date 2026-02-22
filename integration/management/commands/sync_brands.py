@@ -1,6 +1,7 @@
 # integration/management/commands/sync_brands.py
 
 from django.core.management.base import BaseCommand
+from django.utils.text import slugify
 from collections import defaultdict
 
 from integration.models import MoySkladProduct
@@ -74,8 +75,10 @@ class Command(BaseCommand):
                 continue
 
             # Ищем или создаём Brand
+            slug = slugify(brand_name, allow_unicode=True)
             brand, brand_created = Brand.objects.get_or_create(
-                name=brand_name,
+                slug=slug,
+                defaults={'name': brand_name},
             )
             if brand_created:
                 created_brands += 1
