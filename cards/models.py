@@ -63,7 +63,7 @@ class ProductCardImage(models.Model):
         verbose_name="Карточка"
     )
 
-    image = models.ImageField("Изображение", upload_to='cards/')
+    image = models.ImageField("Изображение", upload_to='cards/', max_length=255)
     alt = models.CharField("Alt текст", max_length=255, blank=True)
 
     is_main = models.BooleanField("Главное", default=False)

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль — Decorkz.kz{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md space-y-8">
+        <div class="text-center">
+            <h1 class="text-2xl font-light tracking-wide">Профиль</h1>
+        </div>
+
+        <div class="space-y-4">
+            <div class="border-b border-gray-200 pb-4">
+                <p class="text-sm text-gray-500">Имя</p>
+                <p class="mt-1">{{ user.get_full_name|default:"—" }}</p>
+            </div>
+            <div class="border-b border-gray-200 pb-4">
+                <p class="text-sm text-gray-500">Email</p>
+                <p class="mt-1">{{ user.email|default:"—" }}</p>
+            </div>
+            <div class="border-b border-gray-200 pb-4">
+                <p class="text-sm text-gray-500">Телефон</p>
+                <p class="mt-1">{{ user.phone|default:"—" }}</p>
+            </div>
+            <div class="border-b border-gray-200 pb-4">
+                <p class="text-sm text-gray-500">Город</p>
+                <p class="mt-1">{{ user.city|default:"—" }}</p>
+            </div>
+            <div class="border-b border-gray-200 pb-4">
+                <p class="text-sm text-gray-500">Адрес</p>
+                <p class="mt-1">{{ user.address|default:"—" }}</p>
+            </div>
+        </div>
+
+        <div class="pt-4">
+            <a href="{% url 'account_logout' %}"
+               class="block w-full text-center border border-gray-300 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                Выйти
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

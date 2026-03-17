@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ og_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block meta_keywords %}{{ meta_keywords }}{% endblock %}
+{% block og_description %}{{ og_description }}{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<!-- BEGIN breadcrumbs -->
+<div class="[ pt-[5.5rem] ] px-4 max-w-screen-xl mx-auto">
+    <ul class="[ pt-4 ] hidden col-span-full lg:flex flex-row flex-nowrap items-center gap-2 text-xs font-medium overflow-hidden">
+      <li class="shrink-0">
+        <a href="{% url 'store:home' %}" class="flex items-center gap-2 text-gray-500 hover:text-pink-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd"></path></svg>
+          <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
+          </svg>
+        </a>
+      </li>
+      <li class="shrink-0">
+        <a href="{% url 'store:catalog_root' %}" class="flex items-center gap-2 text-gray-500 hover:text-pink-600">
+          <span>Каталог</span>
+          <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+          </svg>
+        </a>
+      </li>
+      {% for cat in breadcrumbs %}
+        <li class="shrink-0">
+          <a href="{% url 'store:catalog_by_category' cat.slug %}" class="flex items-center gap-2 text-gray-500 hover:text-blue-600">
+            <span>{{ cat.title }}</span>
+            <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+            </svg>
+          </a>
+        </li>
+      {% endfor %}
+      <li class="min-w-0 shrink">
+        <span class="font-[500] text-black block truncate" title="{{ category.title }}">{{ category.title }}</span>
+      </li>
+    </ul>
+</div>
+<!-- END breadcrumbs -->
+
+<section class="grid grid-cols-6 md:grid-cols-12 pb-[4rem] px-4 gap-4 max-w-screen-xl mx-auto">
+  <div class="border-b-[1px] border-gray-300 col-span-full pt-[1rem] md:pt-[2rem]">
+      <a href="{% url 'store:catalog_root' %}" class="md:hidden inline-flex items-center gap-1 text-sm text-gray-500 pb-2">
+          <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/></svg>
+          <span>Назад</span>
+      </a>
+      <h1 class="text-4xl md:text-6xl font-medium pb-[1rem] items-center flex gap-4">
+      {{ category.title }}
+    </h1>
+  </div>
+
+    {% for subcat in subcategories %}
+    <article class="col-span-3 md:col-span-2">
+        <a href="{% url 'store:catalog_by_category' subcat.slug %}">
+            <figure>
+                {% if subcat.image %}
+                    <img src="{{ subcat.image.url }}" alt="{{ subcat.title }}">
+                {% endif %}
+                <figcaption class="py-3 flex gap-1 flex-col">
+                    <div class="flex items-center justify-between">
+                        <h2 class="[ flex flex-col gap-1 ]">
+                            <span class="text-sm uppercase font-bold">{{ subcat.title|truncatechars:28 }}</span>
+                        </h2>
+                    </div>
+                </figcaption>
+            </figure>
+        </a>
+    </article>
+    {% empty %}
+    <div class="col-span-full py-8 text-center text-gray-400 text-lg">
+        Нет категорий
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}

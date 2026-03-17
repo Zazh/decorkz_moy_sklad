@@ -1,7 +1,7 @@
 # products/models.py
 
 from django.db import models
-from django.utils.text import slugify
+from catalog.translit import translit_slugify
 
 
 class Product(models.Model):
@@ -74,27 +74,29 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.article} — {self.title}"
 
+    def get_absolute_url(self):
+        """Плоский URL: /catalog/<leaf-category>/<product-slug>/"""
+        from django.urls import reverse
+        cat = self.category
+        if cat:
+            return reverse('store:catalog_or_product', kwargs={
+                'slug1': cat.slug,
+                'slug2': self.slug,
+            })
+        return f'/catalog/other/{self.slug}/'
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self.generate_slug()
         super().save(*args, **kwargs)
 
     def generate_slug(self):
-        """Генерация URL: категория/название-артикул"""
-        parts = []
+        """Генерация slug из названия товара (без категории — она в URL пути)."""
+        title_part = translit_slugify(self.title) if self.card else ''
+        if not title_part:
+            title_part = translit_slugify(self.article) or 'product'
 
-        # Категория
-        if self.category:
-            parts.append(slugify(self.category.title, allow_unicode=True))
-
-        # Название из карточки или артикул
-        title_part = slugify(self.title, allow_unicode=True) if self.card else ''
-        if title_part:
-            parts.append(f"{title_part}-{self.article.lower()}")
-        else:
-            parts.append(self.article.lower())
-
-        base = '-'.join(parts)[:200]
+        base = title_part[:200]
         slug = base
         counter = 1
 

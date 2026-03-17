@@ -202,16 +202,30 @@ class Command(BaseCommand):
                 if img_resp.status_code != 200:
                     continue
 
+                from catalog.translit import safe_filename
+                from cards.services import convert_uploaded_bytes_to_webp
+
                 original_filename = img_data.get('filename', f'{article}_{i}.jpg')
                 ext = original_filename.rsplit('.', 1)[-1] if '.' in original_filename else 'jpg'
-                filename = f'{article}_{i}.{ext}'[:90]
+                filename = safe_filename(f'{article}_{i}.{ext}')[:90]
+
+                # Конвертируем в WebP до сохранения на диск
+                webp_bytes, webp_filename = convert_uploaded_bytes_to_webp(
+                    img_resp.content, filename
+                )
+                if webp_bytes:
+                    save_bytes = webp_bytes
+                    save_filename = webp_filename[:90]
+                else:
+                    save_bytes = img_resp.content
+                    save_filename = filename
 
                 card_image = ProductCardImage(
                     card=card,
                     is_main=(i == 0 and not card.images.filter(is_main=True).exists()),
                     alt=card.title[:255],
                 )
-                card_image.image.save(filename, ContentFile(img_resp.content), save=True)
+                card_image.image.save(save_filename, ContentFile(save_bytes), save=True)
                 count += 1
 
             except Exception as e:

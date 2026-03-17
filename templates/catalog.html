@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+{% load static %}
+{% load catalog_tags %}
+
+{% block title %}{{ og_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block meta_keywords %}{{ meta_keywords }}{% endblock %}
+{% block og_description %}{{ og_description }}{% endblock %}
+{% block og_image %}{{ og_image }}{% endblock %}
+
+{% block content %}
+
+<!-- ===== MOBILE ===== -->
+<div class="md:hidden pt-[5.5rem] pb-[4rem]">
+  {% if not category %}
+  <!-- Mobile: category list for root /catalog/ -->
+  <div class="px-4 pt-1 pb-3 border-b border-gray-200">
+    <div class="text-2xl font-semibold">Каталог</div>
+  </div>
+  <div class="pt-2">
+    {% for cat in nav_categories %}
+      {% with subs=cat.active_children %}
+      {% if subs|length > 1 %}
+      <div class="border-b border-gray-200">
+        <button type="button" data-mob-cat-toggle="{{ cat.slug }}"
+                class="w-full flex items-center justify-between py-3 px-4 text-base font-medium text-gray-800 cursor-pointer text-left">
+          <span>{{ cat.title }} <span class="text-sm text-gray-400">{{ cat.product_count }}</span></span>
+          <svg class="w-5 h-5 text-gray-400 transition-transform" data-mob-cat-arrow="{{ cat.slug }}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </button>
+        <ul class="ml-4 pb-2 space-y-0.5 hidden" data-mob-cat-list="{{ cat.slug }}">
+          {% for sub in subs %}
+          <li>
+            <a href="{% url 'store:catalog_by_category' sub.slug %}"
+               class="flex items-center justify-between py-2 px-4 text-sm text-gray-600">
+              <span>{{ sub.title }} <span class="text-xs text-gray-400">{{ sub.product_count }}</span></span>
+              <svg class="w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% elif subs|length == 1 %}
+      <a href="{% url 'store:catalog_by_category' subs.0.slug %}"
+         class="flex items-center justify-between py-3 px-4 border-b border-gray-200 text-base font-medium text-gray-800">
+        <span>{{ cat.title }} <span class="text-sm text-gray-400">{{ cat.product_count }}</span></span>
+        <svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+      </a>
+      {% else %}
+      <a href="{% url 'store:catalog_by_category' cat.slug %}"
+         class="flex items-center justify-between py-3 px-4 border-b border-gray-200 text-base font-medium text-gray-800">
+        <span>{{ cat.title }} <span class="text-sm text-gray-400">{{ cat.product_count }}</span></span>
+        <svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+      </a>
+      {% endif %}
+      {% endwith %}
+    {% endfor %}
+  </div>
+  <script>
+  (function(){
+    document.querySelectorAll('[data-mob-cat-toggle]').forEach(function(btn){
+      var slug = btn.dataset.mobCatToggle;
+      var list = document.querySelector('[data-mob-cat-list="'+slug+'"]');
+      var arrow = document.querySelector('[data-mob-cat-arrow="'+slug+'"]');
+      if(!list) return;
+      btn.addEventListener('click', function(){
+        var isHidden = list.classList.contains('hidden');
+        list.classList.toggle('hidden');
+        if(arrow) arrow.style.transform = isHidden ? 'rotate(90deg)' : '';
+      });
+    });
+  })();
+  </script>
+
+  {% else %}
+  <!-- Mobile: product list for category pages -->
+  <div class="md:hidden px-4 pb-[1rem] border-b border-gray-200">
+    <div class="flex items-center gap-3">
+      {% include "components/back_btn.html" with href="/catalog/" %}
+      <span class="text-xl font-semibold truncate">{{ category.title }}</span>
+    </div>
+  </div>
+
+  <!-- Mobile: fixed filter button -->
+  <div class="fixed bottom-16 left-0 right-0 z-40 flex justify-center pointer-events-none">
+    <button data-target="#filter-modal" class="js-open pointer-events-auto flex gap-1.5 items-center bg-black text-white text-sm font-medium py-2.5 px-5 rounded-full shadow-lg">
+      <svg class="w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g><g>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M7.75 17.5C7.75 17.0858 7.41421 16.75 7 16.75H2C1.58579 16.75 1.25 17.0858 1.25 17.5C1.25 17.9142 1.58579 18.25 2 18.25H7C7.41421 18.25 7.75 17.9142 7.75 17.5Z" fill="#ffffff"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M16.25 6.5C16.25 6.08579 16.5858 5.75 17 5.75H22C22.4142 5.75 22.75 6.08579 22.75 6.5C22.75 6.91421 22.4142 7.25 22 7.25H17C16.5858 7.25 16.25 6.91421 16.25 6.5Z" fill="#ffffff"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M22.75 17.5C22.75 17.0858 22.4142 16.75 22 16.75H13C12.5858 16.75 12.25 17.0858 12.25 17.5C12.25 17.9142 12.5858 18.25 13 18.25H22C22.4142 18.25 22.75 17.9142 22.75 17.5Z" fill="#ffffff"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M1.25 6.5C1.25 6.08579 1.58579 5.75 2 5.75H11C11.4142 5.75 11.75 6.08579 11.75 6.5C11.75 6.91421 11.4142 7.25 11 7.25H2C1.58579 7.25 1.25 6.91421 1.25 6.5Z" fill="#ffffff"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M13.75 17.3999C13.75 15.3288 12.0711 13.6499 10 13.6499C7.92893 13.6499 6.25 15.3288 6.25 17.3999C6.25 19.471 7.92893 21.1499 10 21.1499C12.0711 21.1499 13.75 19.471 13.75 17.3999Z" fill="#ffffff"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M10.25 6.3999C10.25 4.32883 11.9289 2.6499 14 2.6499C16.0711 2.6499 17.75 4.32883 17.75 6.3999C17.75 8.47097 16.0711 10.1499 14 10.1499C11.9289 10.1499 10.25 8.47097 10.25 6.3999Z" fill="#ffffff"/>
+        </g></g>
+      </svg>
+      <span>Фильтры</span>
+    </button>
+  </div>
+
+  <!-- Mobile product grid -->
+  <div class="grid grid-cols-2 gap-3 px-4 pt-4">
+    {% for p in page_obj %}
+    <article>
+      <div class="relative">
+        {% include "components/favorite_btn.html" with product_id=p.pk %}
+      <a href="{{ p.get_absolute_url }}" class="block">
+        <figure>
+          {% with images=p.card.images.all %}
+          {% if images %}
+          <div class="card-product-image product-gallery relative" style="touch-action: pan-y;">
+            {% for img in images %}
+              <img src="{{ img.image.url }}" class="product-image {% if forloop.first %}is-active{% endif %}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" alt="{{ p.title }}">
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="flex items-center justify-center bg-gray-100 text-gray-400 aspect-square w-full border border-gray-300 rounded-md" style="min-height:120px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" width="60px" height="60px" viewBox="0 0 32 32"><path d="M30,3.4141,28.5859,2,2,28.5859,3.4141,30l2-2H26a2.0027,2.0027,0,0,0,2-2V5.4141ZM26,26H7.4141l7.7929-7.793,2.3788,2.3787a2,2,0,0,0,2.8284,0L22,19l4,3.9973Zm0-5.8318-2.5858-2.5859a2,2,0,0,0-2.8284,0L19,19.1682l-2.377-2.3771L26,7.4141Z"/><path d="M6,22V19l5-4.9966,1.3733,1.3733,1.4159-1.416-1.375-1.375a2,2,0,0,0-2.8284,0L6,16.1716V6H22V4H6A2.002,2.002,0,0,0,4,6V22Z"/></svg>
+          </div>
+          {% endif %}
+          {% endwith %}
+          <figcaption class="py-3 flex gap-1 flex-col">
+            <div class="flex gap-3 items-end">
+              {% if p.rrp_price %}
+              <span class="text-base leading-none font-bold text-black">
+                <span>{{ p.rrp_price|format_price }}</span> <span>&#8376;</span>
+              </span>
+              {% endif %}
+            </div>
+            <div class="h-[2.5rem] overflow-hidden">
+              <h2><span class="text-gray-500 text-xs leading-snug line-clamp-2">{{ p.title }}</span></h2>
+            </div>
+          </figcaption>
+        </figure>
+      </a>
+      </div>
+    </article>
+    {% empty %}
+    <div class="col-span-full py-8 text-center text-gray-400 text-lg" style="height:50vh">Нет товаров</div>
+    {% endfor %}
+  </div>
+
+  <!-- Mobile pagination -->
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="px-4 border-t flex justify-between flex-wrap gap-4 items-center py-4 border-gray-300">
+    <p class="text-sm">Показано <span class="font-medium">{{ page_obj.start_index }}</span> по <span class="font-medium">{{ page_obj.end_index }}</span> из <span class="font-medium">{{ page_obj.paginator.count }}</span></p>
+    <nav class="isolate inline-flex -space-x-px rounded-md overflow-hidden shadow-xs">
+      {% if page_obj.has_previous %}
+      <a href="{% query_string page=page_obj.previous_page_number %}" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50">
+        <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/></svg>
+      </a>
+      {% endif %}
+      {% for i in page_obj.paginator.page_range %}
+        {% if i == 1 or i == page_obj.paginator.num_pages or i >= page_obj.number|add:"-1" and i <= page_obj.number|add:"2" %}
+          {% if page_obj.number == i %}
+          <span class="relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white">{{ i }}</span>
+          {% else %}
+          <a href="{% query_string page=i %}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 ring-inset hover:bg-gray-50">{{ i }}</a>
+          {% endif %}
+        {% elif i == 2 and page_obj.number > 4 %}
+          <span class="relative inline-flex items-center px-4 py-2 text-sm text-gray-400">...</span>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <a href="{% query_string page=page_obj.next_page_number %}" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50">
+        <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+      </a>
+      {% endif %}
+    </nav>
+  </div>
+  {% endif %}
+  {% endif %}
+</div>
+
+<!-- ===== DESKTOP: sidebar + products ===== -->
+<section class="hidden md:flex pt-[7rem] pb-[2rem] max-w-screen-xl mx-auto px-4 gap-6">
+
+  <!-- Left sidebar: categories -->
+  <aside class="w-[17rem] shrink-0 sticky top-[7rem] self-start overflow-y-auto no-scrollbar" style="max-height: calc(100vh - 8rem);">
+    <ul class="space-y-0.5">
+      <li>
+        <a href="{% url 'store:catalog_root' %}"
+           class="block px-3 py-2 rounded-md text-sm font-medium {% if not active_cat %}bg-black text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+          Все товары
+        </a>
+      </li>
+      {% for cat in nav_categories %}
+      <li>
+        {% with subs=cat.active_children %}
+        {% if subs|length > 1 %}
+        <button type="button" data-cat-toggle="{{ cat.slug }}"
+                class="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 cursor-pointer text-left">
+          <span>{{ cat.title }} <span class="text-xs text-gray-400">{{ cat.product_count }}</span></span>
+          <svg class="w-4 h-4 text-gray-400 transition-transform" data-cat-arrow="{{ cat.slug }}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </button>
+        <ul class="ml-3 mt-0.5 space-y-0.5 hidden" data-cat-list="{{ cat.slug }}">
+          {% for sub in subs %}
+          <li>
+            <a href="{% url 'store:catalog_by_category' sub.slug %}"
+               class="flex items-center justify-between px-3 py-1.5 rounded-md text-sm {% if active_cat == sub.slug %}bg-black text-white font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <span>{{ sub.title }} <span class="text-xs {% if active_cat == sub.slug %}text-white/60{% else %}text-gray-400{% endif %}">{{ sub.product_count }}</span></span>
+              <svg class="w-3.5 h-3.5 shrink-0 {% if active_cat == sub.slug %}text-white/60{% else %}text-gray-400{% endif %}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% elif subs|length == 1 %}
+        <a href="{% url 'store:catalog_by_category' subs.0.slug %}"
+           class="flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium {% if active_cat == subs.0.slug %}bg-black text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+          <span>{{ cat.title }} <span class="text-xs {% if active_cat == subs.0.slug %}text-white/60{% else %}text-gray-400{% endif %}">{{ cat.product_count }}</span></span>
+          <svg class="w-4 h-4 shrink-0 {% if active_cat == subs.0.slug %}text-white/60{% else %}text-gray-400{% endif %}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        {% else %}
+        <a href="{% url 'store:catalog_by_category' cat.slug %}"
+           class="flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium {% if active_cat == cat.slug %}bg-black text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+          <span>{{ cat.title }} <span class="text-xs {% if active_cat == cat.slug %}text-white/60{% else %}text-gray-400{% endif %}">{{ cat.product_count }}</span></span>
+          <svg class="w-4 h-4 shrink-0 {% if active_cat == cat.slug %}text-white/60{% else %}text-gray-400{% endif %}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        {% endif %}
+        {% endwith %}
+      </li>
+      {% endfor %}
+    </ul>
+  </aside>
+
+  <script>
+  (function(){
+    document.querySelectorAll('[data-cat-toggle]').forEach(function(btn){
+      var slug = btn.dataset.catToggle;
+      var list = document.querySelector('[data-cat-list="'+slug+'"]');
+      var arrow = document.querySelector('[data-cat-arrow="'+slug+'"]');
+      if(!list) return;
+      var hasActive = list.querySelector('.bg-black');
+      if(hasActive){
+        list.classList.remove('hidden');
+        if(arrow) arrow.style.transform = 'rotate(90deg)';
+      }
+      btn.addEventListener('click', function(){
+        var isHidden = list.classList.contains('hidden');
+        list.classList.toggle('hidden');
+        if(arrow) arrow.style.transform = isHidden ? 'rotate(90deg)' : '';
+      });
+    });
+  })();
+  </script>
+
+  <!-- Right: filters + products -->
+  <div class="flex-1 min-w-0">
+    <!-- Breadcrumbs -->
+    {% if category %}
+    <ul class="flex flex-row flex-nowrap items-center gap-2 text-xs font-medium overflow-hidden pb-4">
+      <li class="shrink-0">
+        <a href="{% url 'store:home' %}" class="flex items-center gap-2 text-gray-500 hover:text-pink-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd"></path></svg>
+          <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path></svg>
+        </a>
+      </li>
+      <li class="shrink-0">
+        <a href="{% url 'store:catalog_root' %}" class="flex items-center gap-2 text-gray-500 hover:text-pink-600">
+          <span>Каталог</span>
+          <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+      </li>
+      {% for cat in breadcrumbs %}
+        {% if cat.pk != category.pk %}
+        <li class="shrink-0">
+          <a href="{% url 'store:catalog_by_category' cat.slug %}" class="flex items-center gap-2 text-gray-500 hover:text-blue-600">
+            <span>{{ cat.title }}</span>
+            <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+          </a>
+        </li>
+        {% endif %}
+      {% endfor %}
+      <li class="min-w-0 shrink">
+        <span class="font-[500] text-black block truncate">{{ category.title }}</span>
+      </li>
+    </ul>
+    {% endif %}
+
+    <div class="border-b border-gray-300 pb-4 mb-4">
+      <h1 class="text-4xl font-medium pb-4">{% if category %}{{ category.title }}{% else %}Каталог{% endif %}</h1>
+
+      <!-- Desktop filter buttons -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Сортировка -->
+        <div class="relative" data-dropdown>
+          <div class="flex items-center rounded-md overflow-hidden {% if sort and sort != 'title' and sort != 'default' %}bg-black text-white{% else %}bg-white border border-gray-300{% endif %}">
+            <button type="button" class="df-toggle flex items-center gap-1.5 text-sm font-medium py-2 px-3 cursor-pointer {% if sort and sort != 'title' and sort != 'default' %}hover:bg-gray-800{% else %}hover:bg-gray-100{% endif %}">
+              <span>{% if sort == "title" %}А–Я{% elif sort == "-title" %}Я–А{% elif sort == "price" %}Дешевле{% elif sort == "-price" %}Дороже{% else %}Сортировка{% endif %}</span>
+              <svg class="w-4 h-4 {% if sort and sort != 'title' and sort != 'default' %}text-white/60{% else %}text-gray-400{% endif %} transition-transform" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </button>
+            {% if sort and sort != "title" and sort != "default" %}
+            <a href="{% query_string sort='' %}" class="flex items-center px-2 py-2 hover:bg-gray-800 border-l border-white/20" title="Сбросить">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/></svg>
+            </a>
+            {% endif %}
+          </div>
+          <div class="df-panel hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[220px]">
+            <ul class="py-1">
+              <li><label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm"><span>Название А–Я</span><input type="radio" name="sort" value="title" form="df-form" class="w-4 h-4 accent-black" {% if sort == "title" or sort == "default" or not sort %}checked{% endif %}></label></li>
+              <li><label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm"><span>Название Я–А</span><input type="radio" name="sort" value="-title" form="df-form" class="w-4 h-4 accent-black" {% if sort == "-title" %}checked{% endif %}></label></li>
+              <li><label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm"><span>Сначала дешевле</span><input type="radio" name="sort" value="price" form="df-form" class="w-4 h-4 accent-black" {% if sort == "price" %}checked{% endif %}></label></li>
+              <li><label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm"><span>Сначала дороже</span><input type="radio" name="sort" value="-price" form="df-form" class="w-4 h-4 accent-black" {% if sort == "-price" %}checked{% endif %}></label></li>
+            </ul>
+          </div>
+        </div>
+
+        {% if sidebar.brand_counts %}
+        <!-- Бренд -->
+        <div class="relative" data-dropdown>
+          <div class="flex items-center rounded-md overflow-hidden {% if active_filters.brand %}bg-black text-white{% else %}bg-white border border-gray-300{% endif %}">
+            <button type="button" class="df-toggle flex items-center gap-1.5 text-sm font-medium py-2 px-3 cursor-pointer {% if active_filters.brand %}hover:bg-gray-800{% else %}hover:bg-gray-100{% endif %}">
+              <span>Бренд{% if active_filters.brand %} ({{ active_filters.brand|length }}){% endif %}</span>
+              <svg class="w-4 h-4 {% if active_filters.brand %}text-white/60{% else %}text-gray-400{% endif %} transition-transform" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </button>
+            {% if active_filters.brand %}
+            <a href="{% query_string brand='' %}" class="flex items-center px-2 py-2 hover:bg-gray-800 border-l border-white/20" title="Сбросить">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/></svg>
+            </a>
+            {% endif %}
+          </div>
+          <div class="df-panel hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[260px] max-h-[360px] overflow-y-auto">
+            <ul class="py-1">
+              {% for bc in sidebar.brand_counts %}
+              <li><label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm"><span>{{ bc.brand__name }} <span class="text-gray-400">({{ bc.count }})</span></span><input type="checkbox" name="brand" value="{{ bc.brand__slug }}" form="df-form" class="w-4 h-4 accent-black rounded" {% if bc.brand__slug in active_filters.brand %}checked{% endif %}></label></li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Цена -->
+        <div class="relative" data-dropdown>
+          <div class="flex items-center rounded-md overflow-hidden {% if active_filters.price_min or active_filters.price_max %}bg-black text-white{% else %}bg-white border border-gray-300{% endif %}">
+            <button type="button" class="df-toggle flex items-center gap-1.5 text-sm font-medium py-2 px-3 cursor-pointer {% if active_filters.price_min or active_filters.price_max %}hover:bg-gray-800{% else %}hover:bg-gray-100{% endif %}">
+              <span>{% if active_filters.price_min or active_filters.price_max %}{{ active_filters.price_min|default:"0" }} – {{ active_filters.price_max|default:"∞" }} &#8376;{% else %}Цена{% endif %}</span>
+              <svg class="w-4 h-4 {% if active_filters.price_min or active_filters.price_max %}text-white/60{% else %}text-gray-400{% endif %} transition-transform" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </button>
+            {% if active_filters.price_min or active_filters.price_max %}
+            <a href="{% query_string price_min='' price_max='' %}" class="flex items-center px-2 py-2 hover:bg-gray-800 border-l border-white/20" title="Сбросить">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/></svg>
+            </a>
+            {% endif %}
+          </div>
+          <div class="df-panel hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 w-[340px] p-4" data-price-filter="desktop">
+            <div class="price-histogram flex items-end gap-[2px] h-16 px-1" data-histogram></div>
+            <div class="price-range-track relative h-1 bg-gray-200 rounded mt-1">
+              <span class="price-range-fill absolute h-full bg-black rounded" data-range-fill></span>
+              <input type="range" class="price-range-input absolute w-full" data-range-min form="df-form" min="{{ sidebar.price_min }}" max="{{ sidebar.price_max }}" value="{{ active_filters.price_min|default:sidebar.price_min }}" step="1">
+              <input type="range" class="price-range-input absolute w-full" data-range-max form="df-form" min="{{ sidebar.price_min }}" max="{{ sidebar.price_max }}" value="{{ active_filters.price_max|default:sidebar.price_max }}" step="1">
+            </div>
+            <div class="flex gap-3 items-center pt-5">
+              <div class="flex-1 border border-gray-300 rounded-lg px-3 py-2">
+                <label class="text-[10px] text-gray-500 block">Минимум</label>
+                <div class="flex items-center gap-1">
+                  <span class="text-sm text-gray-400">&#8376;</span>
+                  <input type="number" name="price_min" data-input-min form="df-form" value="{{ active_filters.price_min|default:sidebar.price_min }}" class="w-full text-sm font-medium outline-none bg-transparent">
+                </div>
+              </div>
+              <span class="text-gray-300">—</span>
+              <div class="flex-1 border border-gray-300 rounded-lg px-3 py-2">
+                <label class="text-[10px] text-gray-500 block">Максимум</label>
+                <div class="flex items-center gap-1">
+                  <span class="text-sm text-gray-400">&#8376;</span>
+                  <input type="number" name="price_max" data-input-max form="df-form" value="{{ active_filters.price_max|default:sidebar.price_max }}" class="w-full text-sm font-medium outline-none bg-transparent">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Apply / Reset -->
+        <button type="submit" form="df-form" class="bg-blue-600 text-white text-sm font-medium py-2 px-4 cursor-pointer hover:bg-blue-700 rounded-md">Применить</button>
+        {% if active_filters %}
+        <a href="{% if category %}{% url 'store:catalog_by_category' category.slug %}{% else %}{% url 'store:catalog_root' %}{% endif %}" class="text-sm text-red-500 hover:text-red-600 px-2">Сбросить все</a>
+        {% endif %}
+
+        <form id="df-form" method="get" class="hidden"></form>
+      </div>
+    </div>
+
+    <!-- Products grid -->
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+      {% for p in page_obj %}
+      <article>
+        <div class="relative">
+          {% include "components/favorite_btn.html" with product_id=p.pk %}
+        <a href="{{ p.get_absolute_url }}" class="block">
+          <figure>
+            {% with images=p.card.images.all %}
+            {% if images %}
+            <div class="card-product-image product-gallery relative" style="touch-action: pan-y;">
+              {% for img in images %}
+                <img src="{{ img.image.url }}" class="product-image {% if forloop.first %}is-active{% endif %}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" alt="{{ p.title }}">
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="flex items-center justify-center bg-gray-100 text-gray-400 aspect-square w-full border border-gray-300 rounded-md" style="min-height:120px;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" width="60px" height="60px" viewBox="0 0 32 32"><path d="M30,3.4141,28.5859,2,2,28.5859,3.4141,30l2-2H26a2.0027,2.0027,0,0,0,2-2V5.4141ZM26,26H7.4141l7.7929-7.793,2.3788,2.3787a2,2,0,0,0,2.8284,0L22,19l4,3.9973Zm0-5.8318-2.5858-2.5859a2,2,0,0,0-2.8284,0L19,19.1682l-2.377-2.3771L26,7.4141Z"/><path d="M6,22V19l5-4.9966,1.3733,1.3733,1.4159-1.416-1.375-1.375a2,2,0,0,0-2.8284,0L6,16.1716V6H22V4H6A2.002,2.002,0,0,0,4,6V22Z"/></svg>
+            </div>
+            {% endif %}
+            {% endwith %}
+            <figcaption class="py-3 flex gap-1 flex-col">
+              <div class="flex gap-3 items-end pb-2">
+                {% if p.rrp_price %}
+                <span class="text-xl leading-none font-bold text-black">
+                  <span>{{ p.rrp_price|format_price }}</span> <span>&#8376;</span>
+                </span>
+                {% endif %}
+              </div>
+              <div class="h-14 overflow-hidden">
+                <h3><span class="text-gray-500 text-sm leading-snug line-clamp-2">{{ p.title }}</span></h3>
+              </div>
+            </figcaption>
+          </figure>
+        </a>
+        </div>
+      </article>
+      {% empty %}
+      <div class="col-span-full py-8 text-center text-gray-400 text-lg" style="height:40vh">Нет товаров</div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="border-t flex justify-between flex-wrap gap-4 items-center py-4 border-gray-300 mt-4">
+      <p class="text-sm">Показано <span class="font-medium">{{ page_obj.start_index }}</span> по <span class="font-medium">{{ page_obj.end_index }}</span> из <span class="font-medium">{{ page_obj.paginator.count }}</span> товаров</p>
+      <nav class="isolate inline-flex -space-x-px rounded-md overflow-hidden shadow-xs">
+        {% if page_obj.has_previous %}
+        <a href="{% query_string page=page_obj.previous_page_number %}" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50">
+          <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/></svg>
+        </a>
+        {% endif %}
+        {% for i in page_obj.paginator.page_range %}
+          {% if i == 1 or i == page_obj.paginator.num_pages or i >= page_obj.number|add:"-1" and i <= page_obj.number|add:"2" %}
+            {% if page_obj.number == i %}
+            <span class="relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white">{{ i }}</span>
+            {% else %}
+            <a href="{% query_string page=i %}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 ring-inset hover:bg-gray-50">{{ i }}</a>
+            {% endif %}
+          {% elif i == 2 and page_obj.number > 4 %}
+            <span class="relative inline-flex items-center px-4 py-2 text-sm text-gray-400">...</span>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="{% query_string page=page_obj.next_page_number %}" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50">
+          <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% include "components/filter_modal.html" %}
+
+<!-- Gallery script -->
+<script>
+(function () {
+  const isFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+  document.addEventListener('DOMContentLoaded', initGalleries);
+  function initGalleries() { document.querySelectorAll('.product-gallery').forEach(setupGallery); }
+  function setupGallery(root) {
+    const imgs = Array.from(root.querySelectorAll('img'));
+    if (!imgs.length) return;
+    imgs.forEach((img, i) => { img.loading = i === 0 ? 'eager' : 'lazy'; img.decoding = 'async'; img.classList.add('opacity-0'); });
+    let index = 0; show(index);
+    let dotsWrap = null, dots = [];
+    if (imgs.length > 1) {
+      dotsWrap = document.createElement('div'); dotsWrap.className = 'pg-dots';
+      dots = imgs.map((_, i) => { const d = document.createElement('button'); d.type = 'button'; d.className = 'pg-dot'; d.addEventListener('click', (e) => { e.stopPropagation(); show(i); }); dotsWrap.appendChild(d); return d; });
+      root.appendChild(dotsWrap); updateDots();
+    }
+    let rafLock = false;
+    if (isFinePointer && imgs.length > 1) {
+      root.addEventListener('mousemove', (e) => { if (rafLock) return; rafLock = true; requestAnimationFrame(() => { const rect = root.getBoundingClientRect(); const relX = Math.min(Math.max(e.clientX - rect.left, 0), rect.width); show(Math.min(imgs.length - 1, Math.floor((relX / rect.width) * imgs.length))); rafLock = false; }); });
+    }
+    let startX = 0, lastX = 0, dragging = false, clickSuppressed = false;
+    root.addEventListener('pointerdown', (e) => { root.setPointerCapture(e.pointerId); startX = lastX = e.clientX; dragging = true; clickSuppressed = false; root.style.cursor = 'grabbing'; });
+    root.addEventListener('pointermove', (e) => { if (!dragging) return; const dx = e.clientX - lastX; if (Math.abs(e.clientX - startX) > 5) clickSuppressed = true; if (Math.abs(dx) >= 30) { show(dx < 0 ? index + 1 : index - 1); lastX = e.clientX; } });
+    function endDrag(e) { if (!dragging) return; dragging = false; root.style.cursor = ''; root.releasePointerCapture?.(e.pointerId); }
+    root.addEventListener('pointerup', endDrag); root.addEventListener('pointercancel', endDrag); root.addEventListener('pointerleave', endDrag);
+    root.addEventListener('click', (e) => { if (clickSuppressed) { e.preventDefault(); e.stopPropagation(); } });
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function show(i) { i = clamp(i, 0, imgs.length - 1); if (i === index && imgs[index].classList.contains('is-active')) return; imgs[index].classList.remove('is-active', 'opacity-100'); imgs[index].classList.add('opacity-0'); imgs[i].classList.add('is-active', 'opacity-100'); imgs[i].classList.remove('opacity-0'); index = i; updateDots(); }
+    function updateDots() { if (!dots.length) return; dots.forEach((d, j) => d.classList.toggle('is-active', j === index)); }
+    imgs[0].classList.add('is-active', 'opacity-100'); imgs[0].classList.remove('opacity-0'); updateDots();
+  }
+})();
+</script>
+{% endblock %}

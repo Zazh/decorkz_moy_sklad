@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% load static %}
+{% load catalog_tags %}
+
+{% block title %}{{ og_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block meta_keywords %}{{ meta_keywords }}{% endblock %}
+{% block og_description %}{{ og_description }}{% endblock %}
+{% block og_image %}{{ og_image }}{% endblock %}
+
+{% block content %}
+<!-- BEGIN breadcrumbs -->
+<div class="hidden lg:block [ pt-[5.5rem] ] px-4 max-w-screen-xl mx-auto">
+    <ul class="[ py-4 ] col-span-full lg:flex flex-row flex-nowrap items-center gap-2 text-xs font-medium overflow-hidden">
+      <li class="shrink-0">
+        <a href="{% url 'store:home' %}" class="flex items-center gap-2 text-gray-500 hover:text-pink-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd"></path></svg>
+          <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
+          </svg>
+        </a>
+      </li>
+      <li class="shrink-0">
+        <a href="{% url 'store:catalog_root' %}" class="flex items-center gap-2 text-gray-500 hover:text-pink-600">
+          <span>Каталог</span>
+          <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+          </svg>
+        </a>
+      </li>
+      {% for cat in breadcrumbs %}
+        <li class="shrink-0">
+          <a href="{% url 'store:catalog_by_category' cat.slug %}" class="flex items-center gap-2 text-gray-500 hover:text-blue-600">
+            <span>{{ cat.title }}</span>
+            <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+            </svg>
+          </a>
+        </li>
+      {% endfor %}
+      <li class="min-w-0 shrink">
+        <span class="font-[500] text-black block truncate" title="{{ product.title }}">{{ product.title }}</span>
+      </li>
+    </ul>
+</div>
+<!-- END breadcrumbs -->
+
+<section class="container-full lg:gap-8 xl:gap-0 pt-4 pb-[3rem]">
+  <div class="product-detail-gallery col-span-full lg:col-span-6">
+    <!-- BEGIN GALLERY (vanilla JS) -->
+    <div id="product-gallery" class="pdg-viewport aspect-[100/85] w-full relative" tabindex="0">
+      <!-- Mobile back button on image -->
+      <div class="lg:hidden absolute top-3 left-3 z-40">
+        {% include "components/back_btn.html" with href="javascript:history.back()" %}
+      </div>
+      {% for img in images %}
+      <div class="absolute inset-0 {% if not forloop.first %}hidden{% endif %}" data-slide="{{ forloop.counter0 }}">
+        <img src="{{ img.image.url }}" class="w-full h-full object-cover" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" alt="{{ product.title }}">
+      </div>
+      {% endfor %}
+
+      {% if images|length > 1 %}
+      <!-- Arrows -->
+      <button type="button" class="pdg-arrow pdg-prev" data-gallery-prev aria-label="Назад">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+      </button>
+      <button type="button" class="pdg-arrow pdg-next" data-gallery-next aria-label="Вперед">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path d="M8.59 16.59 10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+      </button>
+
+      <!-- Dots -->
+      <div class="pdg-dots">
+        {% for img in images %}
+        <button type="button" class="pdg-dot {% if forloop.first %}is-active{% endif %}" data-gallery-dot="{{ forloop.counter0 }}" aria-label="Слайд {{ forloop.counter }}"></button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <!-- END GALLERY -->
+  </div>
+  <div class="col-span-full lg:col-span-6 lg:col-start-7 xl:col-start-8 xl:col-span-5">
+    <div class="flex flex-col gap-2 mt-[2rem]">
+      <div class="flex items-start justify-between gap-4">
+        <h1 class="font-semibold text-2xl md:text-[1.75rem] leading-tight">{{ product.title }}</h1>
+        <button type="button"
+                class="fav-btn shrink-0 mt-1 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                data-product-id="{{ product.pk }}"
+                aria-label="Добавить в избранное">
+            <svg class="fav-icon-outline w-7 h-7 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/>
+            </svg>
+            <svg class="fav-icon-filled w-7 h-7 text-red-500 hidden" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"/>
+            </svg>
+        </button>
+      </div>
+      <h4 class="text-sm font-medium text-gray-500">Артикул: <span>{{ product.sku }}</span></h4>
+
+      {% if rrp_price %}
+      <div class="pt-2">
+        <span class="text-2xl font-bold text-pink-500">{{ rrp_price|format_price }} &#8376;</span>
+      </div>
+      {% endif %}
+
+      {% if product.description %}
+        <p class="pt-4 text-sm">
+          {{ product.description|safe }}
+        </p>
+      {% endif %}
+    </div>
+    <ol class="pt-[1rem]">
+      {% for attr in attributes %}
+      <li class="flex text-sm gap-2 [ border-b-[1px] border-gray-300 ] [ py-3 ]">
+        <span class="w-[60%] inline-block [ font-medium text-gray-500 ] attr-name">{{ attr.attribute.name }}</span>
+        <span class="w-[40%] inline-block [ font-medium text-black ]">
+          {{ attr.value }}{% if attr.attribute.default_unit %} {{ attr.attribute.default_unit.symbol }}{% endif %}
+        </span>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+
+<!-- BEGIN Gallery JS -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const gallery = document.getElementById('product-gallery');
+    if (!gallery) return;
+
+    const slides = gallery.querySelectorAll('[data-slide]');
+    const dots = gallery.querySelectorAll('[data-gallery-dot]');
+    const prevBtn = gallery.querySelector('[data-gallery-prev]');
+    const nextBtn = gallery.querySelector('[data-gallery-next]');
+    let current = 0;
+
+    function showSlide(idx) {
+      idx = Math.max(0, Math.min(slides.length - 1, idx));
+      slides.forEach(s => s.classList.add('hidden'));
+      slides[idx].classList.remove('hidden');
+      dots.forEach(d => d.classList.remove('is-active'));
+      if (dots[idx]) dots[idx].classList.add('is-active');
+      current = idx;
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', () => showSlide(current - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => showSlide(current + 1));
+    dots.forEach(d => d.addEventListener('click', () => showSlide(parseInt(d.dataset.galleryDot))));
+
+    // Keyboard navigation
+    gallery.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); showSlide(current - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); showSlide(current + 1); }
+    });
+
+    // Swipe support
+    let startX = 0, dragging = false;
+    gallery.addEventListener('pointerdown', (e) => { startX = e.clientX; dragging = true; });
+    gallery.addEventListener('pointerup', (e) => {
+      if (!dragging) return;
+      dragging = false;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) showSlide(current + 1);
+        else showSlide(current - 1);
+      }
+    });
+  });
+</script>
+<!-- END Gallery JS -->
+
+<!-- BEGIN capitalize first letter -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.attr-name').forEach(function(el) {
+      var str = el.textContent;
+      if (str) el.textContent = str[0].toUpperCase() + str.slice(1);
+    });
+  });
+</script>
+<!-- END capitalize first letter -->
+{% endblock %}

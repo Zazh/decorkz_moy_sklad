@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Gotham Pro';
+  src: url('./fonts/gothampro.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Gotham Pro';
+  src: url('./fonts/gothampro_bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Gotham Pro';
+  src: url('./fonts/gothampro_medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Gotham Pro';
+  src: url('./fonts/gothampro_italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+}
+
+.container-full {
+  @apply grid grid-cols-6 md:grid-cols-12 px-4 max-w-screen-xl mx-auto;
+}
+
+#nav {
+  @apply flex justify-between items-center w-full px-4 h-[3.5rem] md:h-[4.5rem] overflow-hidden bg-white fixed border-gray-300 border-b-[1px] z-50;
+}
+
+.select-container {
+  @apply text-sm border-gray-300 border-[1px] rounded-md flex items-center hover:bg-gray-100;
+}
+.select {
+  @apply appearance-none outline-none bg-transparent py-2 px-3 cursor-pointer;
+}
+
+body {
+  background: #ffffff;
+  font-family: 'Gotham Pro', sans-serif;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+footer {
+  background: linear-gradient(#1057C6, #056793)!important;
+}
+
+.card-product-item { @apply col-span-3 md:col-span-4 lg:col-span-3; }
+
+.card-product-image {
+  @apply relative border border-gray-300 aspect-square w-full overflow-hidden select-none rounded-md;
+}
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 w-full rounded-md text-sm;
+}
+.card-product-item:hover .btn-primary {
+  @apply hover:bg-blue-700;
+}
+
+/* Card gallery slides */
+.product-gallery img {
+  @apply absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-300 ease-out;
+}
+.product-gallery img.is-active { @apply opacity-100; }
+
+/* Dots */
+.product-gallery .pg-dots {
+  @apply absolute inset-x-0 bottom-2 flex justify-center gap-2 pointer-events-auto;
+}
+.product-gallery .pg-dot {
+  @apply w-2 h-2 rounded-full bg-gray-300 ring-1 ring-black/10;
+}
+.product-gallery .pg-dot.is-active {
+  @apply bg-gray-800;
+}
+
+/* Product detail gallery — mobile/tablet: full-width + top margin */
+@media (max-width: 1023px) {
+  .product-detail-gallery {
+    margin-top: 2.5rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    width: calc(100% + 2rem);
+  }
+  .product-detail-gallery .pdg-viewport {
+    border: none;
+  }
+}
+
+/* Product detail gallery viewport */
+.pdg-viewport { @apply relative overflow-hidden border border-gray-300 bg-white; }
+
+.pdg-track {
+  @apply flex h-full w-full transition-transform duration-300 ease-out;
+  will-change: transform;
+}
+
+.pdg-slide { @apply relative shrink-0 grow-0 basis-full h-full; }
+.pdg-slide > img { @apply w-full h-full object-cover; }
+
+.pdg-arrow {
+  @apply absolute top-1/2 -translate-y-1/2 grid place-items-center
+  w-10 h-10 rounded-full bg-white/80 ring-1 ring-black/10
+  hover:bg-white hover:ring-black/20 transition z-30;
+}
+.pdg-prev { @apply left-2; }
+.pdg-next { @apply right-2; }
+
+.pdg-dots { @apply absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-30; }
+.pdg-dot  { @apply w-2 h-2 rounded-full bg-gray-300 ring-1 ring-black/10; }
+.pdg-dot.is-active { @apply bg-gray-800; }
+
+.product-image {
+   box-shadow: 0 0 0 1px rgb(0 0 0 / 10%);
+}
+
+/* Blog article detail */
+#article-content .content > * {
+  @apply py-2;
+}
+#article-content a {
+  @apply text-blue-500;
+}
+#article-content a:hover {
+  @apply underline;
+}
+#article-content p {
+  @apply text-sm leading-5;
+}
+#article-content h1 {
+  @apply text-4xl font-medium;
+}
+#article-content h2 {
+  @apply text-xl font-medium pt-4;
+}
+#article-content h3 {
+  @apply text-base font-medium pt-2;
+}
+#article-content .hero-img {
+  @apply w-full object-cover object-center pb-4;
+}
+#article-content .hero-img__caption {
+  @apply pb-6 text-sm text-gray-500;
+}
+#article-content ul {
+  list-style-position: inside;
+  list-style-type: disc;
+  @apply pl-4 text-sm leading-5;
+}
+#article-content ol {
+  list-style-position: inside;
+  list-style-type: decimal;
+  @apply pl-4 text-sm leading-5;
+}
+
+.contact-socials svg {
+  height: 2rem;
+  width: auto;
+}
+
+/* Bottom tab bar safe area */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Add bottom padding on mobile for the bottom tab bar */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 3.5rem;
+  }
+}
+
+/* Bottom nav active state */
+#bottom-nav .btab {
+  transition: color 0.15s;
+}

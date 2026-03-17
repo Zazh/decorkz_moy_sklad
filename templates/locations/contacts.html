@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ og_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<main class="flex flex-col">
+    <section class="flex-grow">
+      <div class="container-full pb-[6rem] gap-4 pt-[8rem]">
+        <div class="col-span-full xl:col-span-8 xl:col-start-3">
+          <h1 class="text-6xl font-medium pb-[3rem]">Контакты</h1>
+          <div class="flex flex-wrap">
+            <div class="w-full lg:w-1/2">
+              {% if contacts %}
+              <h2 class="text-2xl">{{ contacts.company_name }}</h2>
+              {% endif %}
+            </div>
+            <div class="w-full lg:w-1/2 pt-[4rem] lg:pt-0">
+              {% if contacts %}
+              <ul class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                {% if contacts.email %}
+                <li>
+                  <h3 class="pb-6 text-gray-500 font-medium">E-mail</h3>
+                  <div class="flex flex-col gap-2 text-black">
+                    <a href="mailto:{{ contacts.email }}" class="hover:text-blue-600 font-medium">{{ contacts.email }}</a>
+                  </div>
+                </li>
+                {% endif %}
+                {% if contacts.phone %}
+                <li>
+                  <h3 class="pb-6 text-gray-500 font-medium">Телефон</h3>
+                  <div class="flex flex-col gap-2 text-black">
+                    <a href="tel:{{ contacts.phone }}" class="hover:text-blue-600 mask-phone">{{ contacts.phone }}</a>
+                  </div>
+                </li>
+                {% endif %}
+                {% if contacts.address %}
+                <li>
+                  <h3 class="pb-6 text-gray-500 font-medium">Адрес</h3>
+                  <div class="flex flex-col gap-2 text-black">
+                    {% if contacts.map_url %}
+                    <a class="hover:text-blue-600 font-medium" href="{{ contacts.map_url }}" target="_blank" rel="noopener">{{ contacts.address }}</a>
+                    {% else %}
+                    <span class="font-medium">{{ contacts.address }}</span>
+                    {% endif %}
+                  </div>
+                </li>
+                {% endif %}
+                {% if contacts.socials.all %}
+                <li>
+                  <h3 class="pb-6 text-gray-500 font-medium">Социальные сети</h3>
+                  <div class="flex flex-row items-center gap-6 contact-socials">
+                    {% for social in contacts.socials.all %}
+                    <a href="{{ social.url }}" target="_blank" rel="noopener" title="{{ social.name }}" class="text-black hover:text-blue-600 transition-colors">
+                      {{ social.svg_icon|safe }}
+                    </a>
+                    {% endfor %}
+                  </div>
+                </li>
+                {% endif %}
+              </ul>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+</main>
+<script>
+    document.querySelectorAll('.mask-phone').forEach(function(el) {
+        let num = el.textContent.replace(/\D/g, '');
+        if(num.length === 11 && num.startsWith('7')) {
+            let formatted = '+7 ('
+                + num.slice(1,4) + ') '
+                + num.slice(4,7) + '-'
+                + num.slice(7,9) + '-'
+                + num.slice(9,11);
+            el.textContent = formatted;
+        }
+    });
+</script>
+{% endblock %}

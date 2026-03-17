@@ -1,7 +1,7 @@
 # references/models.py
 
 from django.db import models
-from django.utils.text import slugify
+from catalog.translit import translit_slugify
 
 
 class UnitGroup(models.Model):
@@ -99,7 +99,7 @@ class Brand(models.Model):
     """Бренды товаров — эталонный справочник"""
 
     name = models.CharField("Название", max_length=100, unique=True)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     logo = models.ImageField("Логотип", upload_to='brands/', blank=True)
     description = models.TextField("Описание", blank=True)
 
@@ -117,7 +117,7 @@ class Brand(models.Model):
     def save(self, *args, **kwargs):
         self.name = self.name.strip()
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            self.slug = translit_slugify(self.name)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -142,7 +142,7 @@ class AttributeDefinition(models.Model):
     ]
 
     name = models.CharField("Название", max_length=100, unique=True)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
 
     code = models.CharField(
         "Код",
@@ -188,7 +188,7 @@ class AttributeDefinition(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            self.slug = translit_slugify(self.name)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -202,7 +202,7 @@ class AttributeDefinition(models.Model):
 class Category(models.Model):
     """Категории каталога"""
     title = models.CharField("Название", max_length=100)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     parent = models.ForeignKey(
         'self', null=True, blank=True,
         on_delete=models.CASCADE,
@@ -234,7 +234,7 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title, allow_unicode=True)
+            self.slug = translit_slugify(self.title)
         super().save(*args, **kwargs)
 
     def __str__(self):

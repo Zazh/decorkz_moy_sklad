@@ -24,4 +24,4 @@ _data/
 .DS_Store
 
 # Claude
-.claude/
+.claude/cache/

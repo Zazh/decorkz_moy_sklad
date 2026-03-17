@@ -53,7 +53,7 @@ class BrandMappingAdmin(admin.ModelAdmin):
     def create_brand_from_mapping(self, request, queryset):
         """Создаёт Brand из source_name и связывает"""
         from references.models import Brand
-        from django.utils.text import slugify
+        from catalog.translit import translit_slugify
 
         created = 0
         for mapping in queryset.filter(brand__isnull=True):
@@ -67,7 +67,7 @@ class BrandMappingAdmin(admin.ModelAdmin):
                 continue
 
             # Создаём новый
-            slug = slugify(name, allow_unicode=True) or 'brand'
+            slug = translit_slugify(name) or 'brand'
             base_slug = slug[:45]
             counter = 1
             while Brand.objects.filter(slug=slug).exists():

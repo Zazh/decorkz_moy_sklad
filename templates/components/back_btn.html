@@ -1,0 +1,17 @@
+{% comment %}
+Back button component.
+Usage:
+  {% include "components/back_btn.html" with href="/catalog/" label="Каталог" %}
+  {% include "components/back_btn.html" with href="javascript:history.back()" %}
+
+Without label — icon only (for product page).
+With label — icon + text (for catalog page).
+{% endcomment %}
+<a href="{{ href }}" class="inline-flex items-center gap-2 group">
+  <span class="w-8 h-8 rounded-lg border border-gray-300 bg-white/80 flex items-center justify-center group-hover:bg-white group-hover:border-gray-400 transition-colors">
+    <svg class="w-5 h-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/>
+    </svg>
+  </span>
+  {% if label %}<span class="text-sm font-medium text-gray-500 group-hover:text-gray-800 transition-colors">{{ label }}</span>{% endif %}
+</a>

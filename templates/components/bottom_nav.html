@@ -1,0 +1,284 @@
+{% load catalog_tags %}
+{% get_root_categories as root_categories %}
+
+<!-- Bottom Tab Bar (mobile only) -->
+<nav id="bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-bottom">
+    <div class="flex justify-around items-center h-14">
+        <!-- Главная -->
+        <a href="/" class="btab flex flex-col items-center justify-center gap-0.5 w-full h-full" data-tab="home">
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-[10px] leading-none">Главная</span>
+        </a>
+
+        <!-- Категории (opens panel) -->
+        <button class="btab flex flex-col items-center justify-center gap-0.5 w-full h-full" data-tab="catalog" data-open-panel="categories-panel">
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4Zm1 0v4h4V4H4ZM3 12a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4Zm1 0v4h4v-4H4ZM11 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4Zm1 0v4h4V4h-4ZM11 12a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4Zm1 0v4h4v-4h-4Z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-[10px] leading-none">Категории</span>
+        </button>
+
+        <!-- Избранное (opens panel) -->
+        <button class="btab flex flex-col items-center justify-center gap-0.5 w-full h-full" data-tab="favorites" data-open-panel="favorites-panel">
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.723.723 0 0 1-.692 0h-.002Z"/>
+            </svg>
+            <span class="text-[10px] leading-none">Избранное</span>
+        </button>
+
+        <!-- Профиль (opens panel) -->
+        <button class="btab flex flex-col items-center justify-center gap-0.5 w-full h-full" data-tab="profile" data-open-panel="profile-panel">
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-[10px] leading-none">Профиль</span>
+        </button>
+    </div>
+</nav>
+
+<!-- ========== CATEGORIES PANEL ========== -->
+<div id="categories-panel" class="bnav-panel fixed inset-0 z-[60] hidden md:hidden">
+    <div data-panel-overlay class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"></div>
+    <div data-panel-content class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl transition-transform duration-300 translate-y-full min-h-[90vh] max-h-[90vh] flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+            <h2 class="text-lg font-semibold">Категории</h2>
+            <button data-panel-close class="p-1">
+                <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+                </svg>
+            </button>
+        </div>
+        <!-- Category list -->
+        <div class="overflow-y-auto flex-1 safe-bottom">
+            <ul class="divide-y divide-gray-100">
+                {% for cat in root_categories %}
+                <li>
+                    {% with subs=cat.active_children %}
+                    {% if subs|length > 1 %}
+                    <!-- Multiple subcategories: expandable -->
+                    <button type="button" data-bnav-toggle="{{ cat.slug }}"
+                            class="w-full flex items-center justify-between px-4 py-4 active:bg-gray-50 cursor-pointer text-left">
+                        <span class="flex items-center gap-1.5">
+                            <span class="text-[15px] font-medium">{{ cat.title }}</span>
+                            <span class="text-xs text-gray-400 pl-1">{{ cat.product_count }}</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 shrink-0 transition-transform" data-bnav-arrow="{{ cat.slug }}" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <ul class="hidden bg-gray-50" data-bnav-list="{{ cat.slug }}">
+                        {% for sub in subs %}
+                        <li>
+                            <a href="{% url 'store:catalog_by_category' sub.slug %}" class="flex items-center justify-between pl-8 pr-4 py-3 active:bg-gray-100">
+                                <span class="flex items-center gap-1.5">
+                                    <span class="text-[14px] text-gray-700">{{ sub.title }}</span>
+                                    <span class="text-xs text-gray-400">{{ sub.product_count }}</span>
+                                </span>
+                                <svg class="w-4 h-4 text-gray-300 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                                </svg>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% elif subs|length == 1 %}
+                    <!-- Single subcategory: direct link -->
+                    <a href="{% url 'store:catalog_by_category' subs.0.slug %}" class="flex items-center justify-between px-4 py-4 active:bg-gray-50">
+                        <span class="flex items-center gap-1.5">
+                            <span class="text-[15px] font-medium">{{ cat.title }}</span>
+                            <span class="text-xs text-gray-400 pl-1">{{ cat.product_count }}</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                        </svg>
+                    </a>
+                    {% else %}
+                    <!-- No subcategories: direct link -->
+                    <a href="{% url 'store:catalog_by_category' cat.slug %}" class="flex items-center justify-between px-4 py-4 active:bg-gray-50">
+                        <span class="flex items-center gap-1.5">
+                            <span class="text-[15px] font-medium">{{ cat.title }}</span>
+                            <span class="text-xs text-gray-400 pl-1">{{ cat.product_count }}</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+                    {% endwith %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ========== FAVORITES PANEL ========== -->
+<div id="favorites-panel" class="bnav-panel fixed inset-0 z-[60] hidden md:hidden">
+    <div data-panel-overlay class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"></div>
+    <div data-panel-content class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl transition-transform duration-300 translate-y-full min-h-[90vh] max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+            <h2 class="text-lg font-semibold">Избранное</h2>
+            <button data-panel-close class="p-1">
+                <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+                </svg>
+            </button>
+        </div>
+        <div id="favorites-panel-content" class="overflow-y-auto flex-1 py-4 safe-bottom">
+            <div class="flex items-center justify-center py-12">
+                <div class="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== PROFILE PANEL ========== -->
+<div id="profile-panel" class="bnav-panel fixed inset-0 z-[60] hidden md:hidden">
+    <div data-panel-overlay class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"></div>
+    <div data-panel-content class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl transition-transform duration-300 translate-y-full min-h-[90vh] max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+            <h2 class="text-lg font-semibold">Профиль</h2>
+            <button data-panel-close class="p-1">
+                <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="overflow-y-auto flex-1 px-4 py-6 safe-bottom">
+            {% if user.is_authenticated %}
+            <div class="flex flex-col items-center gap-4">
+                <svg class="w-20 h-20 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-sm font-medium">{{ user.get_full_name|default:user.email }}</p>
+                <div class="w-full space-y-3 text-sm text-gray-500">
+                    {% if user.email %}<div class="flex justify-between"><span>Email</span><span class="text-black">{{ user.email }}</span></div>{% endif %}
+                    {% if user.phone %}<div class="flex justify-between"><span>Телефон</span><span class="text-black">{{ user.phone }}</span></div>{% endif %}
+                    {% if user.city %}<div class="flex justify-between"><span>Город</span><span class="text-black">{{ user.city }}</span></div>{% endif %}
+                </div>
+                <a href="{% url 'account_logout' %}" class="border border-gray-300 text-gray-700 font-medium py-3 px-6 rounded-lg w-full text-sm text-center mt-4">
+                    Выйти
+                </a>
+            </div>
+            {% else %}
+            {% load socialaccount %}
+            <div class="flex flex-col items-center gap-4">
+                <svg class="w-20 h-20 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-gray-500 text-sm">Войдите чтобы отслеживать заказы</p>
+                <a href="{% provider_login_url 'google' %}"
+                   class="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg py-3 px-6 text-sm font-medium text-gray-700 active:bg-gray-50">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Войти через Google
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Bottom nav panel logic -->
+<script>
+(function() {
+    /* ---- active tab highlight ---- */
+    const path = window.location.pathname;
+    const tabs = document.querySelectorAll('#bottom-nav .btab');
+    let activeTab = null;
+    if (path === '/' || path === '') activeTab = 'home';
+    else if (path.startsWith('/catalog')) activeTab = 'catalog';
+
+    tabs.forEach(tab => {
+        tab.classList.add(tab.dataset.tab === activeTab ? 'text-blue-600' : 'text-gray-400');
+    });
+
+    /* ---- bottom-sheet panels ---- */
+    function openPanel(panel) {
+        panel.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            panel.querySelector('[data-panel-overlay]')?.classList.remove('opacity-0');
+            panel.querySelector('[data-panel-content]')?.classList.remove('translate-y-full');
+        });
+    }
+
+    function closePanel(panel) {
+        panel.querySelector('[data-panel-overlay]')?.classList.add('opacity-0');
+        panel.querySelector('[data-panel-content]')?.classList.add('translate-y-full');
+        setTimeout(() => panel.classList.add('hidden'), 300);
+    }
+
+    /* open buttons */
+    document.querySelectorAll('[data-open-panel]').forEach(btn => {
+        const panel = document.getElementById(btn.dataset.openPanel);
+        if (!panel) return;
+        btn.addEventListener('click', () => {
+            openPanel(panel);
+            // Load favorites preview when opening favorites panel
+            if (btn.dataset.openPanel === 'favorites-panel') {
+                const container = document.getElementById('favorites-panel-content');
+                if (container) {
+                    fetch('/accounts/api/favorites/preview/')
+                        .then(r => r.text())
+                        .then(html => {
+                            container.innerHTML = html;
+                            // Re-init favorite buttons in loaded content
+                            if (typeof updateFavButtons === 'function') updateFavButtons();
+                        });
+                }
+            }
+        });
+    });
+
+    /* close: X button or overlay tap */
+    document.querySelectorAll('.bnav-panel').forEach(panel => {
+        panel.querySelectorAll('[data-panel-close]').forEach(btn => {
+            btn.addEventListener('click', () => closePanel(panel));
+        });
+        panel.querySelector('[data-panel-overlay]')?.addEventListener('click', () => closePanel(panel));
+    });
+
+    /* ESC */
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.bnav-panel:not(.hidden)').forEach(closePanel);
+        }
+    });
+    /* ---- category expand/collapse ---- */
+    document.querySelectorAll('[data-bnav-toggle]').forEach(function(btn){
+        var slug = btn.dataset.bnavToggle;
+        var list = document.querySelector('[data-bnav-list="'+slug+'"]');
+        var arrow = document.querySelector('[data-bnav-arrow="'+slug+'"]');
+        if(!list) return;
+        btn.addEventListener('click', function(){
+            var isHidden = list.classList.contains('hidden');
+            list.classList.toggle('hidden');
+            if(arrow) arrow.style.transform = isHidden ? 'rotate(90deg)' : '';
+        });
+    });
+
+    /* ---- highlight active category ---- */
+    var curPath = window.location.pathname;
+    document.querySelectorAll('#categories-panel a[href]').forEach(function(a){
+        if(a.getAttribute('href') === curPath) {
+            a.classList.add('text-blue-600');
+            a.classList.remove('text-gray-700', 'text-gray-600');
+            // Auto-expand parent list
+            var parentList = a.closest('[data-bnav-list]');
+            if(parentList) {
+                parentList.classList.remove('hidden');
+                var slug = parentList.dataset.bnavList;
+                var arrow = document.querySelector('[data-bnav-arrow="'+slug+'"]');
+                if(arrow) arrow.style.transform = 'rotate(90deg)';
+            }
+        }
+    });
+})();
+</script>

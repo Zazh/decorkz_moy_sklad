@@ -1,21 +1,35 @@
-from django.db.models import Q, Count, Subquery, OuterRef
+from django.db.models import Q, Count, Subquery, OuterRef, Prefetch, Exists
 
 from products.models import Product
 from pricing.models import Price
+from cards.models import ProductCardImage
 
 
 def get_base_queryset():
-    """Базовый queryset с аннотациями (цена, кол-во фото)."""
+    """Базовый queryset с аннотациями (цена, кол-во фото). Только товары с ценой."""
     rrp_subquery = Price.objects.filter(
         product_id=OuterRef('pk'),
         price_type__name='РРЦ',
         is_active=True
     ).values('price')[:1]
 
+    has_price = Price.objects.filter(
+        product_id=OuterRef('pk'),
+        price_type__name='РРЦ',
+        is_active=True,
+    )
+
     return Product.objects.filter(
-        is_active=True
+        is_active=True,
+    ).filter(
+        Exists(has_price),
     ).select_related(
         'brand', 'category', 'category__parent', 'card', 'moysklad'
+    ).prefetch_related(
+        Prefetch(
+            'card__images',
+            queryset=ProductCardImage.objects.order_by('-is_main', 'sort_order'),
+        ),
     ).annotate(
         rrp_price=Subquery(rrp_subquery),
         image_count=Count('card__images', distinct=True),

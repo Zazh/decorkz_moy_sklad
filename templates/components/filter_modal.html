@@ -1,0 +1,437 @@
+{% load catalog_tags %}
+<!-- BEGIN FILTER MODAL -->
+<div id="filter-modal" data-modal class="js-modal fixed inset-0 z-[70] hidden">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300" data-overlay></div>
+
+    <!-- ======================== -->
+    <!-- MOBILE: Lamoda-style     -->
+    <!-- ======================== -->
+    <form method="get" data-panel-mobile id="mf-root"
+          class="md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl transition-transform duration-300 translate-y-full min-h-[90vh] max-h-[90vh] flex flex-col z-10">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 shrink-0">
+            <!-- Default title -->
+            <h2 class="text-lg font-semibold" id="mf-title-default">Фильтры</h2>
+            <!-- Back title (hidden by default) -->
+            <button type="button" class="hidden items-center gap-1 text-lg font-semibold" id="mf-title-back">
+                <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/></svg>
+                <span id="mf-title-text"></span>
+            </button>
+            <button data-close type="button" class="p-1" aria-label="Close">
+                <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Scrollable body — holds both layers -->
+        <div class="flex-1 overflow-hidden relative">
+
+            <!-- LAYER 0: Price (always visible) + filter list -->
+            <div class="absolute inset-0 overflow-y-auto transition-transform duration-300" id="mf-layer0">
+
+                <!-- Price — always open -->
+                <div class="px-4 pt-4 pb-2 border-b border-gray-200" data-price-filter="mobile">
+                    <h4 class="text-[15px] font-medium pb-3">Цена</h4>
+                    <div class="price-histogram flex items-end gap-[2px] h-16 px-1" data-histogram></div>
+                    <div class="price-range-track relative h-1 bg-gray-200 rounded mt-1">
+                        <span class="price-range-fill absolute h-full bg-black rounded" data-range-fill></span>
+                        <input type="range" class="price-range-input absolute w-full" data-range-min
+                               min="{{ sidebar.price_min }}" max="{{ sidebar.price_max }}"
+                               value="{{ active_filters.price_min|default:sidebar.price_min }}" step="1">
+                        <input type="range" class="price-range-input absolute w-full" data-range-max
+                               min="{{ sidebar.price_min }}" max="{{ sidebar.price_max }}"
+                               value="{{ active_filters.price_max|default:sidebar.price_max }}" step="1">
+                    </div>
+                    <div class="flex gap-3 items-center pt-5 pb-2">
+                        <div class="flex-1 border border-gray-300 rounded-lg px-3 py-2">
+                            <label class="text-[10px] text-gray-500 block">Минимум</label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-sm text-gray-400">&#8376;</span>
+                                <input type="number" name="price_min" data-input-min
+                                       value="{{ active_filters.price_min|default:sidebar.price_min }}"
+                                       class="w-full text-sm font-medium outline-none bg-transparent">
+                            </div>
+                        </div>
+                        <span class="text-gray-300">—</span>
+                        <div class="flex-1 border border-gray-300 rounded-lg px-3 py-2">
+                            <label class="text-[10px] text-gray-500 block">Максимум</label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-sm text-gray-400">&#8376;</span>
+                                <input type="number" name="price_max" data-input-max
+                                       value="{{ active_filters.price_max|default:sidebar.price_max }}"
+                                       class="w-full text-sm font-medium outline-none bg-transparent">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter list items -->
+                <ul class="divide-y divide-gray-100">
+                    <!-- Сортировка -->
+                    <li>
+                        <button type="button" class="mf-open-sub flex items-center justify-between w-full px-4 py-4 active:bg-gray-50"
+                                data-sub="mf-sub-sort" data-label="Сортировка">
+                            <span class="text-[15px] font-medium">Сортировка</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-400" id="mf-sort-label"></span>
+                                <svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </button>
+                    </li>
+
+                    {% if sidebar.brand_counts %}
+                    <!-- Бренд -->
+                    <li>
+                        <button type="button" class="mf-open-sub flex items-center justify-between w-full px-4 py-4 active:bg-gray-50"
+                                data-sub="mf-sub-brand" data-label="Бренд">
+                            <span class="text-[15px] font-medium">Бренд</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-400" id="mf-brand-label"></span>
+                                <svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </button>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- LAYER 1: Sub-panels (slide in from right) -->
+
+            <!-- Sort sub-panel -->
+            <div class="absolute inset-0 bg-white overflow-y-auto transition-transform duration-300 translate-x-full" id="mf-sub-sort">
+                <ul class="divide-y divide-gray-100">
+                    <li>
+                        <label class="flex items-center justify-between px-4 py-4 active:bg-gray-50 cursor-pointer">
+                            <span class="text-[15px]">Название А–Я</span>
+                            <input type="radio" name="sort" value="title" class="w-5 h-5 accent-black"
+                                {% if sort == "title" or not sort %}checked{% endif %}>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="flex items-center justify-between px-4 py-4 active:bg-gray-50 cursor-pointer">
+                            <span class="text-[15px]">Название Я–А</span>
+                            <input type="radio" name="sort" value="-title" class="w-5 h-5 accent-black"
+                                {% if sort == "-title" %}checked{% endif %}>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="flex items-center justify-between px-4 py-4 active:bg-gray-50 cursor-pointer">
+                            <span class="text-[15px]">Сначала дешевле</span>
+                            <input type="radio" name="sort" value="price" class="w-5 h-5 accent-black"
+                                {% if sort == "price" %}checked{% endif %}>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="flex items-center justify-between px-4 py-4 active:bg-gray-50 cursor-pointer">
+                            <span class="text-[15px]">Сначала дороже</span>
+                            <input type="radio" name="sort" value="-price" class="w-5 h-5 accent-black"
+                                {% if sort == "-price" %}checked{% endif %}>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+
+            {% if sidebar.brand_counts %}
+            <!-- Brand sub-panel -->
+            <div class="absolute inset-0 bg-white overflow-y-auto transition-transform duration-300 translate-x-full" id="mf-sub-brand">
+                <ul class="divide-y divide-gray-100">
+                    {% for bc in sidebar.brand_counts %}
+                    <li>
+                        <label class="flex items-center justify-between px-4 py-4 active:bg-gray-50 cursor-pointer">
+                            <span class="text-[15px]">{{ bc.brand__name }} <span class="text-gray-400 text-sm">({{ bc.count }})</span></span>
+                            <input type="checkbox" name="brand" value="{{ bc.brand__slug }}"
+                                   class="w-5 h-5 accent-black rounded"
+                                {% if bc.brand__slug in active_filters.brand %}checked{% endif %}>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+        </div><!-- end scrollable body -->
+
+        <!-- Footer -->
+        <div class="border-t border-gray-200 px-4 pt-3 pb-3 flex gap-2 shrink-0">
+            <a href="{% if category %}{% url 'store:catalog_by_category' category.slug %}{% else %}{% url 'store:catalog_root' %}{% endif %}" class="w-full text-center text-sm font-bold py-3 border border-gray-300 rounded-lg hover:bg-gray-50">Сбросить</a>
+            <button type="submit" class="cursor-pointer w-full text-white bg-black hover:bg-gray-900 font-bold rounded-lg text-sm py-3">Применить</button>
+        </div>
+    </form>
+
+</div>
+<!-- END FILTER MODAL -->
+
+<!-- Price slider CSS -->
+<style>
+.price-range-track { position: relative; }
+.price-range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: none;
+  position: absolute;
+  top: -6px;
+  left: 0;
+  width: 100%;
+  height: 14px;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+}
+.price-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #222;
+  cursor: grab;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  position: relative;
+  z-index: 2;
+}
+.price-range-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #222;
+  cursor: grab;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  position: relative;
+  z-index: 2;
+}
+.price-range-input:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.15); }
+.price-range-input:active::-moz-range-thumb { cursor: grabbing; transform: scale(1.15); }
+.price-range-input::-webkit-slider-runnable-track { background: transparent; }
+.price-range-input::-moz-range-track { background: transparent; }
+</style>
+
+<!-- Mobile filter sub-panel navigation JS -->
+<script>
+(function() {
+  var layer0 = document.getElementById('mf-layer0');
+  if (!layer0) return;
+
+  var currentSub = null;
+  var titleDefault = document.getElementById('mf-title-default');
+  var titleBack = document.getElementById('mf-title-back');
+  var titleText = document.getElementById('mf-title-text');
+
+  var SORT_LABELS = {
+    'title': 'А–Я',
+    '-title': 'Я–А',
+    'price': 'Дешевле',
+    '-price': 'Дороже'
+  };
+
+  function updateLabels() {
+    var sortEl = document.getElementById('mf-sort-label');
+    if (sortEl) {
+      var checked = document.querySelector('#mf-sub-sort input[name="sort"]:checked');
+      sortEl.textContent = checked ? (SORT_LABELS[checked.value] || '') : '';
+    }
+    var brandEl = document.getElementById('mf-brand-label');
+    if (brandEl) {
+      var checks = document.querySelectorAll('#mf-sub-brand input[name="brand"]:checked');
+      brandEl.textContent = checks.length ? checks.length + ' выбрано' : '';
+    }
+  }
+
+  function openSub(id, label) {
+    var sub = document.getElementById(id);
+    if (!sub) return;
+    currentSub = sub;
+    layer0.classList.add('-translate-x-full');
+    sub.classList.remove('translate-x-full');
+    // Switch header
+    titleDefault.classList.add('hidden');
+    titleBack.classList.remove('hidden');
+    titleBack.classList.add('flex');
+    titleText.textContent = label;
+  }
+
+  function closeSub() {
+    if (!currentSub) return;
+    layer0.classList.remove('-translate-x-full');
+    currentSub.classList.add('translate-x-full');
+    currentSub = null;
+    // Restore header
+    titleDefault.classList.remove('hidden');
+    titleBack.classList.add('hidden');
+    titleBack.classList.remove('flex');
+    updateLabels();
+  }
+
+  // Open sub-panel buttons
+  document.querySelectorAll('.mf-open-sub').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      openSub(btn.dataset.sub, btn.dataset.label);
+    });
+  });
+
+  // Back via header title
+  titleBack.addEventListener('click', function(e) {
+    e.preventDefault();
+    closeSub();
+  });
+
+  // Listen for changes to update labels
+  document.querySelectorAll('#mf-sub-sort input, #mf-sub-brand input').forEach(function(inp) {
+    inp.addEventListener('change', updateLabels);
+  });
+
+  // When filter modal is closed, reset to layer0
+  var modal = document.getElementById('filter-modal');
+  if (modal) {
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        if (m.attributeName === 'class' && modal.classList.contains('hidden')) {
+          closeSub();
+        }
+      });
+    });
+    observer.observe(modal, { attributes: true });
+  }
+
+  updateLabels();
+})();
+</script>
+
+<!-- Price slider JS -->
+<script>
+(function() {
+  var BUCKETS = {{ sidebar.price_buckets_json|safe }};
+  var ABS_MIN = {{ sidebar.price_min }};
+  var ABS_MAX = {{ sidebar.price_max }};
+  if (ABS_MIN >= ABS_MAX) return;
+
+  document.querySelectorAll('[data-price-filter]').forEach(function(root) {
+    var rangeMin = root.querySelector('[data-range-min]');
+    var rangeMax = root.querySelector('[data-range-max]');
+    var inputMin = root.querySelector('[data-input-min]');
+    var inputMax = root.querySelector('[data-input-max]');
+    var fill = root.querySelector('[data-range-fill]');
+    var histEl = root.querySelector('[data-histogram]');
+
+    // Build histogram bars
+    var maxCount = Math.max.apply(null, BUCKETS.length ? BUCKETS : [0]);
+    if (maxCount > 0 && histEl) {
+      BUCKETS.forEach(function(cnt, i) {
+        var bar = document.createElement('div');
+        var pct = Math.max(4, (cnt / maxCount) * 100);
+        bar.className = 'flex-1 rounded-sm transition-colors duration-150';
+        bar.style.height = pct + '%';
+        bar.style.minWidth = '3px';
+        bar.dataset.barIndex = i;
+        histEl.appendChild(bar);
+      });
+    }
+
+    function updateFill() {
+      var lo = parseInt(rangeMin.value);
+      var hi = parseInt(rangeMax.value);
+      var range = ABS_MAX - ABS_MIN;
+      if (range <= 0) return;
+      fill.style.left = ((lo - ABS_MIN) / range) * 100 + '%';
+      fill.style.right = (100 - ((hi - ABS_MIN) / range) * 100) + '%';
+    }
+
+    function updateHistogramColors() {
+      if (!histEl || !BUCKETS.length) return;
+      var lo = parseInt(rangeMin.value);
+      var hi = parseInt(rangeMax.value);
+      var step = (ABS_MAX - ABS_MIN) / BUCKETS.length;
+      var bars = histEl.children;
+      for (var i = 0; i < bars.length; i++) {
+        var bucketLo = ABS_MIN + i * step;
+        var bucketHi = bucketLo + step;
+        bars[i].style.backgroundColor = (bucketHi > lo && bucketLo < hi) ? '#222' : '#d1d5db';
+      }
+    }
+
+    function syncFromSliders() {
+      var lo = parseInt(rangeMin.value);
+      var hi = parseInt(rangeMax.value);
+      if (lo > hi) { rangeMin.value = hi; lo = hi; }
+      inputMin.value = lo;
+      inputMax.value = hi;
+      updateFill();
+      updateHistogramColors();
+    }
+
+    function syncFromInputs() {
+      var lo = parseInt(inputMin.value) || ABS_MIN;
+      var hi = parseInt(inputMax.value) || ABS_MAX;
+      lo = Math.max(ABS_MIN, Math.min(ABS_MAX, lo));
+      hi = Math.max(ABS_MIN, Math.min(ABS_MAX, hi));
+      if (lo > hi) { var t = lo; lo = hi; hi = t; }
+      rangeMin.value = lo;
+      rangeMax.value = hi;
+      inputMin.value = lo;
+      inputMax.value = hi;
+      updateFill();
+      updateHistogramColors();
+    }
+
+    rangeMin.addEventListener('input', syncFromSliders);
+    rangeMax.addEventListener('input', syncFromSliders);
+    inputMin.addEventListener('change', syncFromInputs);
+    inputMax.addEventListener('change', syncFromInputs);
+
+    syncFromSliders();
+  });
+})();
+</script>
+
+<!-- Desktop dropdown filter JS -->
+<script>
+(function() {
+  var openDropdown = null;
+
+  function closeAll() {
+    document.querySelectorAll('[data-dropdown]').forEach(function(dd) {
+      dd.querySelector('.df-panel').classList.add('hidden');
+      dd.querySelector('.df-toggle svg').style.transform = '';
+    });
+    openDropdown = null;
+  }
+
+  document.querySelectorAll('[data-dropdown] .df-toggle').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var dd = btn.closest('[data-dropdown]');
+      var panel = dd.querySelector('.df-panel');
+      var isOpen = !panel.classList.contains('hidden');
+
+      closeAll();
+
+      if (!isOpen) {
+        panel.classList.remove('hidden');
+        btn.querySelector('svg').style.transform = 'rotate(180deg)';
+        openDropdown = dd;
+      }
+    });
+  });
+
+  // Close on click outside
+  document.addEventListener('click', function(e) {
+    if (openDropdown && !openDropdown.contains(e.target)) {
+      closeAll();
+    }
+  });
+
+  // Close on ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && openDropdown) closeAll();
+  });
+})();
+</script>

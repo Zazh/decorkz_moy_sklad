@@ -1,0 +1,136 @@
+<nav id="nav">
+    <!-- Mobile: empty left spacer (keeps logo centered) -->
+    <div class="md:hidden w-[3rem]"></div>
+
+    <!-- Desktop: burger menu (left) -->
+    <div class="hidden md:flex gap-[4rem] items-center">
+        <button data-target="#sidebar" class="py-2 js-open" type="button" aria-label="Navigation button">
+            <svg height="20" viewBox="0 0 72 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0H72V3H0V0Z" fill="#000"/>
+                <path d="M0 19H72V22H0V19Z" fill="#000"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Logo (always centered) -->
+    <a href="{% url 'store:home' %}" class="flex justify-center items-center" aria-label="link in home page">
+        <svg class="w-[10rem] md:w-[12rem]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 199 47" fill="none">
+            <path d="M0 30.1459C0.178839 26.3314 1.77446 22.7208 4.47469 20.0206C7.17493 17.3203 10.7855 15.7247 14.6 15.5459V30.1459H0Z" fill="url(#paint0_linear)"/>
+            <path d="M14.6029 46.5482C10.7884 46.3694 7.17786 44.7738 4.47762 42.0735C1.77739 39.3733 0.181769 35.7628 0.00292969 31.9482H14.6029V46.5482Z" fill="url(#paint1_linear)"/>
+            <path d="M31.0048 31.9482C30.8259 35.7628 29.2303 39.3733 26.5301 42.0735C23.8299 44.7738 20.2193 46.3694 16.4048 46.5482V31.9482H31.0048Z" fill="url(#paint2_linear)"/>
+            <path d="M104.877 31.8701C104.698 35.6846 103.102 39.2952 100.402 41.9954C97.7019 44.6957 94.0914 46.2913 90.2769 46.4701V31.8701H104.877Z" fill="url(#paint3_linear)"/>
+            <path d="M31.0052 14.818C31.0054 18.761 29.4864 22.5524 26.764 25.4047C24.0416 28.2569 20.3249 29.9506 16.3862 30.134V-0.5C20.3252 -0.316378 24.042 1.37772 26.7644 4.23034C29.4869 7.08295 31.0056 10.8748 31.0052 14.818V14.818Z" fill="url(#paint4_linear)"/>
+            <path d="M73.7939 31.2287C73.7937 27.2836 75.3135 23.49 78.0374 20.6361C80.7613 17.7822 84.48 16.0874 88.4209 15.9037V46.5527C84.4802 46.3691 80.7616 44.6745 78.0377 41.8208C75.3138 38.9671 73.794 35.1737 73.7939 31.2287V31.2287Z" fill="url(#paint5_linear)"/>
+            <path d="M36.9238 30.268C37.1024 26.4534 38.698 22.8427 41.3983 20.1424C44.0986 17.4421 47.7092 15.8466 51.5238 15.668V30.268H36.9238Z" fill="url(#paint6_linear)"/>
+            <path d="M51.5268 46.5482C47.7122 46.3696 44.1015 44.7741 41.4012 42.0738C38.7009 39.3735 37.1054 35.7628 36.9268 31.9482H51.5268V46.5482Z" fill="url(#paint7_linear)"/>
+            <path d="M111.007 30.475C111.186 26.6605 112.781 23.0499 115.482 20.3497C118.182 17.6495 121.792 16.0538 125.607 15.875V30.475H111.007Z" fill="url(#paint8_linear)"/>
+            <path d="M125.61 46.5482C121.795 46.3696 118.185 44.7741 115.484 42.0738C112.784 39.3735 111.188 35.7628 111.01 31.9482H125.61V46.5482Z" fill="url(#paint9_linear)"/>
+            <path d="M53.3262 15.6865C57.1407 15.8654 60.7512 17.461 63.4515 20.1612C66.1517 22.8615 67.7473 26.472 67.9262 30.2865H53.3262V15.6865Z" fill="url(#paint10_linear)"/>
+            <path d="M90.2998 15.8359C94.1143 16.0148 97.7249 17.6104 100.425 20.3106C103.125 23.0109 104.721 26.6214 104.9 30.4359H90.2998V15.8359Z" fill="url(#paint11_linear)"/>
+            <path d="M141.798 31.8701C141.619 35.6846 140.023 39.2952 137.323 41.9954C134.623 44.6957 131.012 46.2913 127.198 46.4701V31.8701H141.798Z" fill="url(#paint12_linear)"/>
+            <path d="M127.221 15.8936C131.036 16.0724 134.646 17.668 137.347 20.3682C140.047 23.0685 141.642 26.679 141.821 30.4936H127.221V15.8936Z" fill="url(#paint13_linear)"/>
+            <path d="M147.976 30.5043C148.155 26.6897 149.75 23.079 152.451 20.3787C155.151 17.6785 158.761 16.0829 162.576 15.9043V30.5043H147.976Z" fill="url(#paint14_linear)"/>
+            <path d="M162.576 31.9527C162.397 35.7673 160.802 39.3778 158.101 42.078C155.401 44.7783 151.791 46.3739 147.976 46.5527V31.9527H162.576Z" fill="url(#paint15_linear)"/>
+            <path d="M178.793 15.9248C178.614 19.7393 177.018 23.3499 174.318 26.0501C171.618 28.7503 168.007 30.346 164.193 30.5248V15.9248H178.793Z" fill="url(#paint16_linear)"/>
+            <path d="M185 23V16H186.94V18.84L189.35 16H191.65L189 19.01L191.74 23H189.41L187.65 20.4L186.94 21.19V23H185Z" fill="#934E99"/>
+            <path d="M192.085 23V21.59L195.595 17.64H192.205V16H198.275V17.41L194.765 21.36H198.275V23H192.085Z" fill="#934E99"/>
+            <defs>
+                <linearGradient id="paint0_linear" x1="2.2338" y1="32.3797" x2="16.8338" y2="17.7797" gradientUnits="userSpaceOnUse"><stop stop-color="#C74084"/><stop offset="0.134" stop-color="#BE4288"/><stop offset="0.352" stop-color="#A64994"/><stop offset="0.376" stop-color="#A34A96"/><stop offset="0.543" stop-color="#964D99"/><stop offset="0.846" stop-color="#7658A1"/><stop offset="1" stop-color="#635EA6"/></linearGradient>
+                <linearGradient id="paint1_linear" x1="4.47053" y1="42.0806" x2="14.6029" y2="31.9482" gradientUnits="userSpaceOnUse"><stop stop-color="#EC3B82"/><stop offset="0.557" stop-color="#E84182"/><stop offset="1" stop-color="#A16C99"/></linearGradient>
+                <linearGradient id="paint2_linear" x1="14.171" y1="44.3144" x2="28.771" y2="29.7144" gradientUnits="userSpaceOnUse"><stop stop-color="#00A8BE"/><stop offset="0.438" stop-color="#6578A1"/><stop offset="1" stop-color="#EC3A7C"/></linearGradient>
+                <linearGradient id="paint3_linear" x1="88.0431" y1="44.2363" x2="102.643" y2="29.6363" gradientUnits="userSpaceOnUse"><stop stop-color="#C96090"/><stop offset="1" stop-color="#EE4983"/></linearGradient>
+                <linearGradient id="paint4_linear" x1="10.1439" y1="5.74934" x2="31.3173" y2="10.5694" gradientUnits="userSpaceOnUse"><stop stop-color="#4367AF"/><stop offset="0.332" stop-color="#4068AE"/><stop offset="0.545" stop-color="#376EAD"/><stop offset="0.725" stop-color="#2878AC"/><stop offset="0.885" stop-color="#1486AA"/><stop offset="1" stop-color="#0094A8"/></linearGradient>
+                <linearGradient id="paint5_linear" x1="94.6666" y1="40.3003" x2="73.4818" y2="35.4774" gradientUnits="userSpaceOnUse"><stop stop-color="#4367AF"/><stop offset="0.332" stop-color="#4068AE"/><stop offset="0.545" stop-color="#376EAD"/><stop offset="0.725" stop-color="#2878AC"/><stop offset="0.885" stop-color="#1486AA"/><stop offset="1" stop-color="#0094A8"/></linearGradient>
+                <linearGradient id="paint6_linear" x1="39.1576" y1="32.5018" x2="53.7576" y2="17.9018" gradientUnits="userSpaceOnUse"><stop stop-color="#C74084"/><stop offset="0.134" stop-color="#BE4288"/><stop offset="0.352" stop-color="#A64994"/><stop offset="0.376" stop-color="#A34A96"/><stop offset="0.543" stop-color="#964D99"/><stop offset="0.846" stop-color="#7658A1"/><stop offset="1" stop-color="#635EA6"/></linearGradient>
+                <linearGradient id="paint7_linear" x1="41.3944" y1="42.0806" x2="51.5268" y2="31.9482" gradientUnits="userSpaceOnUse"><stop stop-color="#EC3B82"/><stop offset="0.557" stop-color="#E84182"/><stop offset="1" stop-color="#A16C99"/></linearGradient>
+                <linearGradient id="paint8_linear" x1="113.241" y1="32.7088" x2="127.841" y2="18.1088" gradientUnits="userSpaceOnUse"><stop stop-color="#C74084"/><stop offset="0.134" stop-color="#BE4288"/><stop offset="0.352" stop-color="#A64994"/><stop offset="0.376" stop-color="#A34A96"/><stop offset="0.543" stop-color="#964D99"/><stop offset="0.846" stop-color="#7658A1"/><stop offset="1" stop-color="#635EA6"/></linearGradient>
+                <linearGradient id="paint9_linear" x1="115.477" y1="42.0806" x2="125.61" y2="31.9482" gradientUnits="userSpaceOnUse"><stop stop-color="#EC3B82"/><stop offset="0.557" stop-color="#E84182"/><stop offset="1" stop-color="#A16C99"/></linearGradient>
+                <linearGradient id="paint10_linear" x1="308.009" y1="227.649" x2="293.409" y2="242.249" gradientUnits="userSpaceOnUse"><stop stop-color="#00A8BE"/><stop offset="0.438" stop-color="#6578A1"/><stop offset="1" stop-color="#EC3A7C"/></linearGradient>
+                <linearGradient id="paint11_linear" x1="294.174" y1="269.161" x2="306.599" y2="276.344" gradientUnits="userSpaceOnUse"><stop stop-color="#00A8BE"/><stop offset="0.438" stop-color="#6578A1"/><stop offset="1" stop-color="#EC3A7C"/></linearGradient>
+                <linearGradient id="paint12_linear" x1="124.964" y1="44.2363" x2="139.564" y2="29.6363" gradientUnits="userSpaceOnUse"><stop stop-color="#00A8BE"/><stop offset="0.438" stop-color="#6578A1"/><stop offset="1" stop-color="#EC3A7C"/></linearGradient>
+                <linearGradient id="paint13_linear" x1="307.823" y1="301.528" x2="293.223" y2="316.128" gradientUnits="userSpaceOnUse"><stop stop-color="#00A8BE"/><stop offset="0.438" stop-color="#6578A1"/><stop offset="1" stop-color="#EC3A7C"/></linearGradient>
+                <linearGradient id="paint14_linear" x1="150.21" y1="32.7381" x2="164.81" y2="18.1381" gradientUnits="userSpaceOnUse"><stop stop-color="#C74084"/><stop offset="0.134" stop-color="#BE4288"/><stop offset="0.352" stop-color="#A64994"/><stop offset="0.376" stop-color="#A34A96"/><stop offset="0.543" stop-color="#964D99"/><stop offset="0.846" stop-color="#7658A1"/><stop offset="1" stop-color="#635EA6"/></linearGradient>
+                <linearGradient id="paint15_linear" x1="158.108" y1="42.0851" x2="147.976" y2="31.9527" gradientUnits="userSpaceOnUse"><stop stop-color="#EC3B82"/><stop offset="0.557" stop-color="#E84182"/><stop offset="1" stop-color="#A16C99"/></linearGradient>
+                <linearGradient id="paint16_linear" x1="63.263" y1="159.735" x2="77.863" y2="145.135" gradientUnits="userSpaceOnUse"><stop stop-color="#00A8BE"/><stop offset="0.438" stop-color="#6578A1"/><stop offset="1" stop-color="#EC3A7C"/></linearGradient>
+            </defs>
+        </svg>
+    </a>
+
+    <!-- Right placeholder (keeps logo centered on mobile) -->
+    <div class="w-[3rem] md:hidden"></div>
+
+    <!-- Desktop right side: favorites + profile -->
+    <div class="hidden md:flex items-center justify-end gap-4">
+        <a href="{% url 'favorites' %}" class="text-gray-600 hover:text-black transition-colors" title="Избранное">
+            <svg class="w-8 h-8" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.723.723 0 0 1-.692 0h-.002Z"/>
+            </svg>
+        </a>
+        <button type="button" id="desktop-profile-btn" class="text-gray-600 hover:text-black transition-colors cursor-pointer" title="{% if user.is_authenticated %}Профиль{% else %}Вход{% endif %}">
+            <svg class="w-8 h-8" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clip-rule="evenodd"/>
+            </svg>
+        </button>
+    </div>
+</nav>
+
+<!-- ========== DESKTOP PROFILE MODAL ========== -->
+{% load socialaccount %}
+<div id="desktop-profile-modal" data-modal class="fixed inset-0 z-50 hidden">
+    <div data-overlay class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div data-panel class="relative bg-white rounded-2xl w-full max-w-sm p-8 opacity-0 scale-95 transition-all duration-300">
+            <!-- Close -->
+            <button data-close class="absolute top-4 right-4 text-gray-400 hover:text-black cursor-pointer">
+                <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+                </svg>
+            </button>
+
+            {% if user.is_authenticated %}
+            <div class="flex flex-col items-center gap-4">
+                <svg class="w-20 h-20 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-lg font-medium">{{ user.get_full_name|default:user.email }}</p>
+                <div class="w-full space-y-3 text-sm text-gray-500">
+                    {% if user.email %}<div class="flex justify-between"><span>Email</span><span class="text-black">{{ user.email }}</span></div>{% endif %}
+                    {% if user.phone %}<div class="flex justify-between"><span>Телефон</span><span class="text-black">{{ user.phone }}</span></div>{% endif %}
+                    {% if user.city %}<div class="flex justify-between"><span>Город</span><span class="text-black">{{ user.city }}</span></div>{% endif %}
+                </div>
+                <a href="{% url 'account_logout' %}" class="mt-4 block w-full text-center border border-gray-300 rounded-lg py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    Выйти
+                </a>
+            </div>
+            {% else %}
+            <div class="flex flex-col items-center gap-6">
+                <div class="text-center">
+                    <h2 class="text-xl font-light tracking-wide">Вход</h2>
+                    <p class="mt-2 text-sm text-gray-500">Войдите чтобы отслеживать заказы</p>
+                </div>
+                <a href="{% provider_login_url 'google' %}"
+                   class="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg py-3 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Войти через Google
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('desktop-profile-btn')?.addEventListener('click', function() {
+    const modal = document.getElementById('desktop-profile-modal');
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        modal.querySelector('[data-overlay]')?.classList.remove('opacity-0');
+        modal.querySelector('[data-panel]')?.classList.remove('opacity-0', 'scale-95');
+    });
+});
+</script>

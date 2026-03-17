@@ -1,7 +1,7 @@
 # integration/management/commands/sync_site_categories.py
 
 from django.core.management.base import BaseCommand
-from django.utils.text import slugify
+from catalog.translit import translit_slugify
 
 from integration.models import MoySkladProduct
 from references.models import Category
@@ -113,10 +113,8 @@ class Command(BaseCommand):
         self.stdout.write(f'\nТоваров с категорией: {with_cat}/{total} ({with_cat*100//total if total else 0}%)')
 
     def _generate_slug(self, title, parent=None):
-        """Генерация уникального slug"""
-        base = slugify(title, allow_unicode=True)
-        if not base:
-            base = slugify(title.lower().replace(' ', '-'))
+        """Генерация уникального slug (транслит)"""
+        base = translit_slugify(title)
         if not base:
             base = 'category'
 
