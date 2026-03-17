@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /pim/
+Disallow: /api/
+Disallow: /accounts/
+
+Sitemap: {{ scheme }}://{{ host }}/sitemap.xml

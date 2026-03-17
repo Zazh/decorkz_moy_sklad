@@ -1,13 +1,44 @@
 # config/urls.py
 
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
+from django.template.response import TemplateResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from catalog.sitemaps import StaticSitemap, CategorySitemap, ProductSitemap, BlogSitemap
+
+sitemaps = {
+    'static': StaticSitemap,
+    'categories': CategorySitemap,
+    'products': ProductSitemap,
+    'blog': BlogSitemap,
+}
+
+
+def robots_txt(request):
+    return TemplateResponse(request, 'robots.txt', {
+        'scheme': request.scheme,
+        'host': request.get_host(),
+    }, content_type='text/plain')
+
+
+def llm_txt(request):
+    return TemplateResponse(request, 'llm.txt', {
+        'scheme': request.scheme,
+        'host': request.get_host(),
+    }, content_type='text/plain')
+
+
 urlpatterns = [
+    # SEO
+    path('robots.txt', robots_txt, name='robots_txt'),
+    path('llm.txt', llm_txt, name='llm_txt'),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+
     # Storefront (публичный каталог)
     path('', include('catalog.store_urls')),
 
