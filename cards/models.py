@@ -38,6 +38,7 @@ class ProductCard(models.Model):
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    images_synced_at = models.DateTimeField("Последняя синхр. фото", null=True, blank=True)
 
     class Meta:
         verbose_name = "Карточка контента"

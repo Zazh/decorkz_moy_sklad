@@ -5,9 +5,11 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import logging
+from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from products.models import Product
 from cards.models import ProductCard, ProductCardImage
@@ -130,6 +132,12 @@ class Command(BaseCommand):
                     if not need_sync and ms_image_count != local_image_count and ms_image_count > 0:
                         need_sync = True
 
+                    # Проверка по дате: товар обновлён в МойСклад после последней синхр. фото
+                    if not need_sync and ms_image_count > 0 and card.images_synced_at:
+                        ms_updated = self._get_ms_updated(ms)
+                        if ms_updated and ms_updated > card.images_synced_at:
+                            need_sync = True
+
                     if need_sync:
                         # Удаляем старые фото перед перекачкой
                         if local_image_count > 0:
@@ -137,6 +145,9 @@ class Command(BaseCommand):
                         img_count = self._download_images(ms, card)
                         if img_count > 0:
                             images_downloaded += img_count
+                        # Запоминаем время синхронизации фото
+                        card.images_synced_at = timezone.now()
+                        card.save(update_fields=['images_synced_at'])
 
                 if not dry_run and (created + updated) % 100 == 0 and (created + updated) > 0:
                     self.stdout.write(f'  Обработано: {created + updated}')
@@ -159,6 +170,17 @@ class Command(BaseCommand):
             f'  Фото скачано: {images_downloaded}\n'
             f'  Ошибок: {errors}'
         ))
+
+    def _get_ms_updated(self, ms):
+        """Дата обновления товара в МойСклад из raw_data"""
+        raw = ms.raw_data or {}
+        updated_str = raw.get('updated')
+        if updated_str:
+            try:
+                return parse_datetime(updated_str)
+            except (ValueError, TypeError):
+                return None
+        return None
 
     def _get_ms_image_count(self, ms):
         raw = ms.raw_data or {}
