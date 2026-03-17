@@ -33,12 +33,14 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--dry-run', action='store_true', help='Только показать что будет сделано')
         parser.add_argument('--limit', type=int, default=0, help='Ограничить количество')
+        parser.add_argument('--offset', type=int, default=0, help='Пропустить первые N товаров')
         parser.add_argument('--no-images', action='store_true', help='Без скачивания фото')
         parser.add_argument('--force-images', action='store_true', help='Перекачать фото даже если уже есть')
 
     def handle(self, *args, **options):
         dry_run = options['dry_run']
         limit = options['limit']
+        offset = options['offset']
         skip_images = options['no_images']
         force_images = options['force_images']
 
@@ -76,6 +78,8 @@ class Command(BaseCommand):
         total = products.count()
         self.stdout.write(f'Товаров для обработки: {total}')
 
+        if offset:
+            products = products[offset:]
         if limit:
             products = products[:limit]
 
@@ -84,8 +88,13 @@ class Command(BaseCommand):
         images_downloaded = 0
         errors = 0
 
-        for product in products:
+        processed = 0
+        for product in products.iterator(chunk_size=100):
             ms = product.moysklad
+            processed += 1
+
+            if processed % 100 == 0:
+                self.stdout.write(f'  Прогресс: {processed} товаров, фото: {images_downloaded}')
 
             try:
                 if product.card:
@@ -148,9 +157,6 @@ class Command(BaseCommand):
                         # Запоминаем время синхронизации фото
                         card.images_synced_at = timezone.now()
                         card.save(update_fields=['images_synced_at'])
-
-                if not dry_run and (created + updated) % 100 == 0 and (created + updated) > 0:
-                    self.stdout.write(f'  Обработано: {created + updated}')
 
             except Exception as e:
                 errors += 1
