@@ -172,12 +172,15 @@ class Command(BaseCommand):
         ))
 
     def _get_ms_updated(self, ms):
-        """Дата обновления товара в МойСклад из raw_data"""
+        """Дата обновления товара в МойСклад из raw_data (всегда aware)"""
         raw = ms.raw_data or {}
         updated_str = raw.get('updated')
         if updated_str:
             try:
-                return parse_datetime(updated_str)
+                dt = parse_datetime(updated_str)
+                if dt and timezone.is_naive(dt):
+                    dt = timezone.make_aware(dt)
+                return dt
             except (ValueError, TypeError):
                 return None
         return None
