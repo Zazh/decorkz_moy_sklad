@@ -8,7 +8,6 @@ venv/
 *.sqlite3
 /media/
 staticfiles/
-dist/
 
 # Data files
 _data/
