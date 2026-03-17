@@ -93,7 +93,7 @@ class Command(BaseCommand):
             ms = product.moysklad
             processed += 1
 
-            if processed % 100 == 0:
+            if processed % 50 == 0:
                 self.stdout.write(f'  Прогресс: {processed} товаров, фото: {images_downloaded}')
 
             try:
