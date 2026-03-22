@@ -98,7 +98,7 @@ class Unit(models.Model):
 class Brand(models.Model):
     """Бренды товаров — эталонный справочник"""
 
-    name = models.CharField("Название", max_length=100, unique=True)
+    name = models.CharField("Название", max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     logo = models.ImageField("Логотип", upload_to='brands/', blank=True)
     description = models.TextField("Описание", blank=True)
