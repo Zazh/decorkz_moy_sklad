@@ -171,7 +171,11 @@ class PIMSyncService:
 
         for attr in raw_data.get('attributes', []):
             if attr.get('name') == 'Бренд' and attr.get('value'):
-                brand_name = str(attr['value']).strip()
+                val = attr['value']
+                if isinstance(val, dict):
+                    brand_name = val.get('name', '').strip()
+                else:
+                    brand_name = str(val).strip()
                 break
 
         if not brand_name:

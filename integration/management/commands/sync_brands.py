@@ -42,7 +42,11 @@ class Command(BaseCommand):
             raw = ms.raw_data or {}
             for attr in raw.get('attributes', []):
                 if attr.get('name') == 'Бренд' and attr.get('value'):
-                    brand_name = str(attr['value']).strip()
+                    val = attr['value']
+                    if isinstance(val, dict):
+                        brand_name = val.get('name', '').strip()
+                    else:
+                        brand_name = str(val).strip()
                     if brand_name:
                         brand_counts[brand_name] += 1
                     break
