@@ -63,7 +63,7 @@ def catalog_root(request):
 
     sidebar = _build_sidebar(base_qs, None)
 
-    paginator = Paginator(qs, 20)
+    paginator = Paginator(qs, 50)
     page_obj = paginator.get_page(request.GET.get('page', 1))
 
     context = {
@@ -74,6 +74,7 @@ def catalog_root(request):
         'sidebar': sidebar,
         'sort': sort,
         'active_cat': '',
+        'active_parent_cat': '',
         'og_title': 'Каталог — Decorkz.kz',
         'meta_description': 'Каталог молдингов, плинтусов, реек и декоративных элементов. Быстрая доставка по Казахстану.',
         'meta_keywords': 'молдинги, декор, плинтусы, рейки, каталог, Казахстан',
@@ -83,14 +84,8 @@ def catalog_root(request):
 
 
 def catalog_by_category(request, slug):
-    """Каталог по категории — плоская структура, без подкатегорий."""
+    """Каталог по категории — показывает товары категории и всех подкатегорий."""
     category = get_object_or_404(Category, slug=slug, is_active=True)
-
-    # Если это родительская категория с детьми — редирект на первую подкатегорию
-    first_child = category.children.filter(is_active=True).order_by('sort_order', 'title').first()
-    if first_child:
-        return redirect('store:catalog_by_category', slug=first_child.slug)
-
     return _render_product_list(request, category)
 
 
@@ -177,8 +172,22 @@ def _render_product_list(request, category):
 
     sidebar = _build_sidebar(base_qs, category)
 
-    paginator = Paginator(qs, 20)
+    paginator = Paginator(qs, 50)
     page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    # Определяем активную родительскую категорию для навигации
+    subcategories = list(
+        category.children.filter(is_active=True)
+        .annotate(product_count=Count('products', filter=Q(products__is_active=True)))
+        .order_by('sort_order', 'title')
+    )
+    is_parent = len(subcategories) > 0
+    if is_parent:
+        active_parent_cat = category.slug
+    elif category.parent:
+        active_parent_cat = category.parent.slug
+    else:
+        active_parent_cat = ''
 
     og_title = f'{category.title} — Decorkz.kz'
 
@@ -186,12 +195,14 @@ def _render_product_list(request, category):
         'category': category,
         'nav_categories': _get_nav_categories(),
         'active_cat': category.slug,
+        'active_parent_cat': active_parent_cat,
         'page_obj': page_obj,
         'paginator': paginator,
         'active_filters': active_filters,
         'sidebar': sidebar,
         'sort': sort,
-        'breadcrumbs': [],
+        'subcategories': subcategories if is_parent else [],
+        'breadcrumbs': [category.parent] if category.parent else [],
         'og_title': og_title,
         'meta_description': f'{category.title} — купить молдинги и декор в Казахстане. Широкий ассортимент.',
         'meta_keywords': f'{category.title}, молдинги, декор, купить, Казахстан',
@@ -291,9 +302,17 @@ def _build_sidebar(base_qs, category):
         result = price_qs.aggregate(**annotations)
         price_buckets = [result.get(f'b{i}', 0) or 0 for i in range(num_buckets)]
 
+    country_counts = list(
+        base_qs.filter(country__gt='')
+        .values('country')
+        .annotate(count=Count('id'))
+        .order_by('country')
+    )
+
     sidebar = {
         'total': total,
         'brand_counts': brand_counts,
+        'country_counts': country_counts,
         'price_min': price_min,
         'price_max': price_max,
         'price_buckets_json': json.dumps(price_buckets),

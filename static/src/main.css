@@ -71,7 +71,7 @@ footer {
 
 /* Card gallery slides */
 .product-gallery img {
-  @apply absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-300 ease-out;
+  @apply absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-300 ease-out;
 }
 .product-gallery img.is-active { @apply opacity-100; }
 
@@ -108,7 +108,7 @@ footer {
 }
 
 .pdg-slide { @apply relative shrink-0 grow-0 basis-full h-full; }
-.pdg-slide > img { @apply w-full h-full object-cover; }
+.pdg-slide > img { @apply w-full h-full object-contain; }
 
 .pdg-arrow {
   @apply absolute top-1/2 -translate-y-1/2 grid place-items-center

@@ -117,6 +117,18 @@ def apply_filters(queryset, params):
         queryset = queryset.filter(category__isnull=False)
         active['has_category'] = '1'
 
+    # Страна производитель
+    countries = params.getlist('country')
+    if countries:
+        queryset = queryset.filter(country__in=countries)
+        active['country'] = countries
+
+    # Подкатегория (фильтр на странице родительской категории)
+    subcats = params.getlist('subcat')
+    if subcats:
+        queryset = queryset.filter(category__slug__in=subcats)
+        active['subcat'] = subcats
+
     # Поиск
     q = params.get('q', '').strip()
     if q:

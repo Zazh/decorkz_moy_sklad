@@ -22,11 +22,16 @@
       {% with subs=cat.active_children %}
       {% if subs|length > 1 %}
       <div class="border-b border-gray-200">
-        <button type="button" data-mob-cat-toggle="{{ cat.slug }}"
-                class="w-full flex items-center justify-between py-3 px-4 text-base font-medium text-gray-800 cursor-pointer text-left">
-          <span>{{ cat.title }} <span class="text-sm text-gray-400">{{ cat.product_count }}</span></span>
-          <svg class="w-5 h-5 text-gray-400 transition-transform" data-mob-cat-arrow="{{ cat.slug }}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
-        </button>
+        <div class="flex items-center">
+          <a href="{% url 'store:catalog_by_category' cat.slug %}"
+             class="flex-1 py-3 px-4 text-base font-medium text-gray-800">
+            <span>{{ cat.title }} <span class="text-sm text-gray-400">{{ cat.product_count }}</span></span>
+          </a>
+          <button type="button" data-mob-cat-toggle="{{ cat.slug }}"
+                  class="py-3 px-4 cursor-pointer">
+            <svg class="w-5 h-5 text-gray-400 transition-transform" data-mob-cat-arrow="{{ cat.slug }}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
         <ul class="ml-4 pb-2 space-y-0.5 hidden" data-mob-cat-list="{{ cat.slug }}">
           {% for sub in subs %}
           <li>
@@ -187,12 +192,16 @@
       <li>
         {% with subs=cat.active_children %}
         {% if subs|length > 1 %}
-        <button type="button" data-cat-toggle="{{ cat.slug }}"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 cursor-pointer text-left">
-          <span>{{ cat.title }} <span class="text-xs text-gray-400">{{ cat.product_count }}</span></span>
-          <svg class="w-4 h-4 text-gray-400 transition-transform" data-cat-arrow="{{ cat.slug }}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
-        </button>
-        <ul class="ml-3 mt-0.5 space-y-0.5 hidden" data-cat-list="{{ cat.slug }}">
+        <div class="flex items-center rounded-md {% if active_parent_cat == cat.slug and active_cat == cat.slug %}bg-black text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+          <a href="{% url 'store:catalog_by_category' cat.slug %}"
+             class="flex-1 px-3 py-2 text-sm font-medium text-left">
+            <span>{{ cat.title }} <span class="text-xs {% if active_parent_cat == cat.slug and active_cat == cat.slug %}text-white/60{% else %}text-gray-400{% endif %}">{{ cat.product_count }}</span></span>
+          </a>
+          <button type="button" data-cat-toggle="{{ cat.slug }}" class="px-2 py-2 cursor-pointer shrink-0">
+            <svg class="w-4 h-4 {% if active_parent_cat == cat.slug and active_cat == cat.slug %}text-white/60{% else %}text-gray-400{% endif %} transition-transform" data-cat-arrow="{{ cat.slug }}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+        <ul class="ml-3 mt-0.5 space-y-0.5 {% if active_parent_cat == cat.slug %}{% else %}hidden{% endif %}" data-cat-list="{{ cat.slug }}">
           {% for sub in subs %}
           <li>
             <a href="{% url 'store:catalog_by_category' sub.slug %}"
@@ -229,9 +238,8 @@
       var list = document.querySelector('[data-cat-list="'+slug+'"]');
       var arrow = document.querySelector('[data-cat-arrow="'+slug+'"]');
       if(!list) return;
-      var hasActive = list.querySelector('.bg-black');
-      if(hasActive){
-        list.classList.remove('hidden');
+      // Если список уже раскрыт (серверный рендер) — повернуть стрелку
+      if(!list.classList.contains('hidden')){
         if(arrow) arrow.style.transform = 'rotate(90deg)';
       }
       btn.addEventListener('click', function(){
@@ -322,6 +330,54 @@
             <ul class="py-1">
               {% for bc in sidebar.brand_counts %}
               <li><label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm"><span>{{ bc.brand__name }} <span class="text-gray-400">({{ bc.count }})</span></span><input type="checkbox" name="brand" value="{{ bc.brand__slug }}" form="df-form" class="w-4 h-4 accent-black rounded" {% if bc.brand__slug in active_filters.brand %}checked{% endif %}></label></li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if subcategories %}
+        <!-- Категория (подкатегории) -->
+        <div class="relative" data-dropdown>
+          <div class="flex items-center rounded-md overflow-hidden {% if active_filters.subcat %}bg-black text-white{% else %}bg-white border border-gray-300{% endif %}">
+            <button type="button" class="df-toggle flex items-center gap-1.5 text-sm font-medium py-2 px-3 cursor-pointer {% if active_filters.subcat %}hover:bg-gray-800{% else %}hover:bg-gray-100{% endif %}">
+              <span>Категория{% if active_filters.subcat %} ({{ active_filters.subcat|length }}){% endif %}</span>
+              <svg class="w-4 h-4 {% if active_filters.subcat %}text-white/60{% else %}text-gray-400{% endif %} transition-transform" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </button>
+            {% if active_filters.subcat %}
+            <a href="{% query_string subcat='' %}" class="flex items-center px-2 py-2 hover:bg-gray-800 border-l border-white/20" title="Сбросить">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/></svg>
+            </a>
+            {% endif %}
+          </div>
+          <div class="df-panel hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[260px] max-h-[360px] overflow-y-auto">
+            <ul class="py-1">
+              {% for sc in subcategories %}
+              <li><label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm"><span>{{ sc.title }} <span class="text-gray-400">({{ sc.product_count }})</span></span><input type="checkbox" name="subcat" value="{{ sc.slug }}" form="df-form" class="w-4 h-4 accent-black rounded" {% if sc.slug in active_filters.subcat %}checked{% endif %}></label></li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if sidebar.country_counts %}
+        <!-- Страна -->
+        <div class="relative" data-dropdown>
+          <div class="flex items-center rounded-md overflow-hidden {% if active_filters.country %}bg-black text-white{% else %}bg-white border border-gray-300{% endif %}">
+            <button type="button" class="df-toggle flex items-center gap-1.5 text-sm font-medium py-2 px-3 cursor-pointer {% if active_filters.country %}hover:bg-gray-800{% else %}hover:bg-gray-100{% endif %}">
+              <span>Страна{% if active_filters.country %} ({{ active_filters.country|length }}){% endif %}</span>
+              <svg class="w-4 h-4 {% if active_filters.country %}text-white/60{% else %}text-gray-400{% endif %} transition-transform" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </button>
+            {% if active_filters.country %}
+            <a href="{% query_string country='' %}" class="flex items-center px-2 py-2 hover:bg-gray-800 border-l border-white/20" title="Сбросить">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/></svg>
+            </a>
+            {% endif %}
+          </div>
+          <div class="df-panel hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[260px] max-h-[360px] overflow-y-auto">
+            <ul class="py-1">
+              {% for cc in sidebar.country_counts %}
+              <li><label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm"><span>{{ cc.country }} <span class="text-gray-400">({{ cc.count }})</span></span><input type="checkbox" name="country" value="{{ cc.country }}" form="df-form" class="w-4 h-4 accent-black rounded" {% if cc.country in active_filters.country %}checked{% endif %}></label></li>
               {% endfor %}
             </ul>
           </div>

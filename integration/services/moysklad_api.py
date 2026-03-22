@@ -42,7 +42,8 @@ class MoySkladAPI:
         """Получение списка товаров"""
         params = {
             'limit': limit,
-            'offset': offset
+            'offset': offset,
+            'expand': 'country',
         }
         return self._make_request('GET', 'entity/product', params=params)
 

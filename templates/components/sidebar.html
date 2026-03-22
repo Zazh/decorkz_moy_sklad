@@ -88,16 +88,20 @@
                 <li>
                     {% with subs=cat.active_children %}
                     {% if subs|length > 1 %}
-                    <button type="button" data-sb-toggle="{{ cat.slug }}"
-                            class="w-full flex items-center justify-between py-2 font-medium text-black hover:text-blue-600 transition-colors cursor-pointer text-left">
-                        <span class="flex items-center gap-1.5">
-                            <span>{{ cat.title }}</span>
-                            <span class="text-xs text-gray-400 pl-1">{{ cat.product_count }}</span>
-                        </span>
-                        <svg class="w-4 h-4 text-gray-400 shrink-0 transition-transform" data-sb-arrow="{{ cat.slug }}" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
+                    <div class="flex items-center">
+                        <a href="{% url 'store:catalog_by_category' cat.slug %}"
+                           class="flex-1 py-2 font-medium text-black hover:text-blue-600 transition-colors">
+                            <span class="flex items-center gap-1.5">
+                                <span>{{ cat.title }}</span>
+                                <span class="text-xs text-gray-400 pl-1">{{ cat.product_count }}</span>
+                            </span>
+                        </a>
+                        <button type="button" data-sb-toggle="{{ cat.slug }}" class="py-2 pl-2 cursor-pointer shrink-0">
+                            <svg class="w-4 h-4 text-gray-400 shrink-0 transition-transform" data-sb-arrow="{{ cat.slug }}" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
                     <ul class="ml-4 hidden" data-sb-list="{{ cat.slug }}">
                         {% for sub in subs %}
                         <li>

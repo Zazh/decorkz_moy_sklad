@@ -103,9 +103,10 @@ class PIMSyncService:
 
         article = article[:100]
 
-        # Маппинг бренда и категории
+        # Маппинг бренда, категории и страны
         brand = self._get_brand(ms_product)
         category = self._get_category(ms_product)
+        country = self._get_country(ms_product)
 
         # Ищем существующий Product по moysklad
         existing_by_moysklad = Product.objects.filter(moysklad=ms_product).first()
@@ -131,6 +132,7 @@ class PIMSyncService:
             existing_by_moysklad.article = article
             existing_by_moysklad.brand = brand
             existing_by_moysklad.category = category
+            existing_by_moysklad.country = country
             existing_by_moysklad.is_active = ms_product.is_active and not ms_product.archived
             existing_by_moysklad.save()
             return 'updated'
@@ -146,6 +148,7 @@ class PIMSyncService:
                 existing_by_article.moysklad = ms_product
                 existing_by_article.brand = brand
                 existing_by_article.category = category
+                existing_by_article.country = country
                 existing_by_article.is_active = ms_product.is_active and not ms_product.archived
                 existing_by_article.save()
                 return 'updated'
@@ -156,6 +159,7 @@ class PIMSyncService:
             article=article,
             brand=brand,
             category=category,
+            country=country,
             is_active=ms_product.is_active and not ms_product.archived,
         )
         return 'created'
@@ -205,6 +209,14 @@ class PIMSyncService:
                 return category
 
         return None
+
+    def _get_country(self, ms_product: MoySkladProduct) -> str:
+        """Извлечь страну из raw_data['country']['name']."""
+        raw_data = ms_product.raw_data or {}
+        country = raw_data.get('country')
+        if isinstance(country, dict):
+            return country.get('name', '')
+        return ''
 
 
 def sync_products():

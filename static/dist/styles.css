@@ -780,14 +780,14 @@ video {
 .max-h-\[360px\] {
   max-height: 360px;
 }
-.max-h-\[90vh\] {
-  max-height: 90vh;
+.max-h-\[80vh\] {
+  max-height: 80vh;
 }
 .min-h-\[60vh\] {
   min-height: 60vh;
 }
-.min-h-\[90vh\] {
-  min-height: 90vh;
+.min-h-\[80vh\] {
+  min-height: 80vh;
 }
 .min-h-screen {
   min-height: 100vh;
@@ -1158,6 +1158,10 @@ video {
 .bg-white\/80 {
   background-color: rgb(255 255 255 / 0.8);
 }
+.object-contain {
+  -o-object-fit: contain;
+     object-fit: contain;
+}
 .object-cover {
   -o-object-fit: cover;
      object-fit: cover;
@@ -1292,6 +1296,9 @@ video {
 }
 .pl-1 {
   padding-left: 0.25rem;
+}
+.pl-2 {
+  padding-left: 0.5rem;
 }
 .pl-8 {
   padding-left: 2rem;
@@ -1733,8 +1740,8 @@ footer {
   inset: 0px;
   height: 100%;
   width: 100%;
-  -o-object-fit: cover;
-     object-fit: cover;
+  -o-object-fit: contain;
+     object-fit: contain;
   opacity: 0;
   transition-property: opacity;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -1817,8 +1824,8 @@ footer {
 .pdg-slide > img {
   height: 100%;
   width: 100%;
-  -o-object-fit: cover;
-     object-fit: cover;
+  -o-object-fit: contain;
+     object-fit: contain;
 }
 
 .pdg-arrow {

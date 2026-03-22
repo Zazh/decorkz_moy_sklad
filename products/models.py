@@ -58,6 +58,15 @@ class Product(models.Model):
         verbose_name="Категория"
     )
 
+    # Страна производитель
+    country = models.CharField(
+        "Страна производитель",
+        max_length=100,
+        blank=True,
+        default='',
+        db_index=True,
+    )
+
     # Статус
     is_active = models.BooleanField("Активен", default=True)
 

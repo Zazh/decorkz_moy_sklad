@@ -55,7 +55,7 @@
       </div>
       {% for img in images %}
       <div class="absolute inset-0 {% if not forloop.first %}hidden{% endif %}" data-slide="{{ forloop.counter0 }}">
-        <img src="{{ img.image.url }}" class="w-full h-full object-cover" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" alt="{{ product.title }}">
+        <img src="{{ img.image.url }}" class="w-full h-full object-contain" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" alt="{{ product.title }}">
       </div>
       {% endfor %}
 
