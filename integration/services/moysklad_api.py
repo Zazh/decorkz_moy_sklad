@@ -38,13 +38,15 @@ class MoySkladAPI:
             logger.error(f"Ошибка при запросе к МойСклад API: {e}")
             raise
 
-    def get_products(self, limit=100, offset=0):
+    def get_products(self, limit=100, offset=0, archived=False):
         """Получение списка товаров"""
         params = {
             'limit': limit,
             'offset': offset,
             'expand': 'country',
         }
+        if archived:
+            params['filter'] = 'archived=true'
         return self._make_request('GET', 'entity/product', params=params)
 
     def get_product(self, product_id):
@@ -80,22 +82,31 @@ class MoySkladAPI:
         return self._make_request('GET', 'entity/counterparty', params=params)
 
     def sync_all_products(self):
-        """Синхронизация всех товаров"""
+        """Синхронизация всех товаров (активные + архивные)"""
         all_products = []
+
+        # Активные товары
         offset = 0
         limit = 100
-
         while True:
             response = self.get_products(limit=limit, offset=offset)
             products = response.get('rows', [])
-
             if not products:
                 break
-
             all_products.extend(products)
             offset += limit
+            if len(products) < limit:
+                break
 
-            # Проверка на последнюю страницу
+        # Архивные товары
+        offset = 0
+        while True:
+            response = self.get_products(limit=limit, offset=offset, archived=True)
+            products = response.get('rows', [])
+            if not products:
+                break
+            all_products.extend(products)
+            offset += limit
             if len(products) < limit:
                 break
 

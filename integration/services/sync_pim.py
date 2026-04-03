@@ -7,6 +7,7 @@ from products.models import Product
 from references.models import Brand, Category
 from mapping.models import BrandMapping
 from integration.models import MoySkladProduct, SyncLog
+from catalog.translit import translit_slugify
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class PIMSyncService:
         'Услуги',
         'Основные средства',
         'Не загружать (прочее)',
+        'Устаревшее',
     ]
 
     def sync_products(self):
@@ -34,6 +36,9 @@ class PIMSyncService:
         errors = 0
 
         try:
+            # Заполнить site_category_id из raw_data где пустой
+            self._backfill_category_ids()
+
             moysklad_products = MoySkladProduct.objects.filter(
                 archived=False
             ).order_by('updated_at')
@@ -53,6 +58,26 @@ class PIMSyncService:
                     logger.error(f"Ошибка синхронизации {ms_product.name}: {e}")
                     errors += 1
 
+            # Деактивировать товары, архивированные в МойСклад
+            archived_deactivated = Product.objects.filter(
+                moysklad__archived=True,
+                is_active=True,
+            ).update(is_active=False)
+            if archived_deactivated:
+                logger.info(f"Деактивировано архивных товаров: {archived_deactivated}")
+
+            # Деактивировать категории без активных товаров
+            from django.db.models import Count, Q
+            empty_cats = Category.objects.filter(
+                is_active=True
+            ).annotate(
+                own=Count('products', filter=Q(products__is_active=True)),
+                child=Count('children__products', filter=Q(children__products__is_active=True)),
+            ).filter(own=0, child=0)
+            cats_deactivated = empty_cats.update(is_active=False)
+            if cats_deactivated:
+                logger.info(f"Деактивировано пустых категорий: {cats_deactivated}")
+
             sync_log.status = 'success'
             sync_log.items_processed = moysklad_products.count()
             sync_log.items_created = created
@@ -65,7 +90,9 @@ class PIMSyncService:
                 'updated': updated,
                 'skipped': skipped,
                 'errors': errors,
-                'total': moysklad_products.count()
+                'total': moysklad_products.count(),
+                'archived_deactivated': archived_deactivated,
+                'cats_deactivated': cats_deactivated,
             }
 
         except Exception as e:
@@ -83,17 +110,27 @@ class PIMSyncService:
         Returns:
             'created' | 'updated' | None (если пропущен)
         """
-        # Проверяем исключённые категории
+        # Проверяем исключённые категории (и подкатегории)
         site_cat = ms_product.site_category or ''
+        site_subcat = ms_product.site_subcategory or ''
+        is_excluded = False
         for excluded in self.EXCLUDED_PATHS:
-            if site_cat == excluded:
-                return None
+            if site_cat == excluded or site_subcat == excluded:
+                is_excluded = True
+                break
 
         # Фолбэк: проверка по path_name (для товаров без site_category)
-        path_name = ms_product.path_name or ''
-        for excluded in self.EXCLUDED_PATHS:
-            if path_name.startswith(excluded):
-                return None
+        if not is_excluded:
+            path_name = ms_product.path_name or ''
+            for excluded in self.EXCLUDED_PATHS:
+                if path_name.startswith(excluded):
+                    is_excluded = True
+                    break
+
+        if is_excluded:
+            # Деактивировать Product если он существует
+            Product.objects.filter(moysklad=ms_product, is_active=True).update(is_active=False)
+            return None
 
         # Артикул: приоритет — код МойСклад, потом артикул
         article = ms_product.code or ms_product.article or ms_product.moysklad_id
@@ -193,26 +230,93 @@ class PIMSyncService:
         return None
 
     def _get_category(self, ms_product: MoySkladProduct) -> Category | None:
-        """Получить категорию из атрибутов 'Категория сайт' / 'Подкатегория сайт'."""
-        # Подкатегория — самый точный уровень
-        if ms_product.site_subcategory:
-            category = Category.objects.filter(
-                title=ms_product.site_subcategory,
-                parent__title=ms_product.site_category,
-            ).first()
-            if category:
-                return category
+        """Получить или создать категорию по ID справочника МойСклад."""
+        cat_name = (ms_product.site_category or '').strip()
+        cat_id = (ms_product.site_category_id or '').strip()
+        subcat_name = (ms_product.site_subcategory or '').strip()
+        subcat_id = (ms_product.site_subcategory_id or '').strip()
 
-        # Если нет подкатегории — используем категорию верхнего уровня
-        if ms_product.site_category:
-            category = Category.objects.filter(
-                title=ms_product.site_category,
-                parent=None,
-            ).first()
-            if category:
-                return category
+        if not cat_name or not cat_id:
+            return None
 
-        return None
+        # Не создаём категории для исключённых
+        if cat_name in self.EXCLUDED_PATHS or subcat_name in self.EXCLUDED_PATHS:
+            return None
+
+        # Родительская категория — get or create по moysklad_id
+        parent, created = Category.objects.get_or_create(
+            moysklad_id=cat_id,
+            defaults={
+                'title': cat_name,
+                'slug': self._generate_slug(cat_name),
+                'parent': None,
+                'is_active': True,
+            }
+        )
+        if not created and parent.title != cat_name:
+            # Название изменилось в МойСклад — обновляем
+            logger.info(f"Категория переименована: {parent.title} → {cat_name}")
+            parent.title = cat_name
+            parent.save(update_fields=['title'])
+        elif created:
+            logger.info(f"Создана категория: {cat_name}")
+
+        # Подкатегория
+        if subcat_name and subcat_id and subcat_id != cat_id:
+            child, created = Category.objects.get_or_create(
+                moysklad_id=subcat_id,
+                defaults={
+                    'title': subcat_name,
+                    'slug': self._generate_slug(subcat_name),
+                    'parent': parent,
+                    'is_active': True,
+                }
+            )
+            if not created and child.title != subcat_name:
+                logger.info(f"Подкатегория переименована: {child.title} → {subcat_name}")
+                child.title = subcat_name
+                child.save(update_fields=['title'])
+            elif created:
+                logger.info(f"Создана подкатегория: {cat_name} → {subcat_name}")
+            return child
+
+        return parent
+
+    def _generate_slug(self, title):
+        """Генерация уникального slug."""
+        base = translit_slugify(title)
+        if not base:
+            base = 'category'
+        slug = base
+        counter = 1
+        while Category.objects.filter(slug=slug).exists():
+            slug = f"{base}-{counter}"
+            counter += 1
+        return slug
+
+    def _backfill_category_ids(self):
+        """Заполнить site_category_id/site_subcategory_id из raw_data где пустые."""
+        qs = MoySkladProduct.objects.filter(site_category_id='').exclude(site_category='')
+        updated = 0
+        for ms in qs.iterator():
+            changed = False
+            for attr in (ms.raw_data or {}).get('attributes', []):
+                val = attr.get('value')
+                if not isinstance(val, dict):
+                    continue
+                href = val.get('meta', {}).get('href', '')
+                uid = href.rsplit('/', 1)[-1] if href else ''
+                if attr.get('name') == 'Категория сайт' and uid:
+                    ms.site_category_id = uid
+                    changed = True
+                elif attr.get('name') == 'Подкатегория сайт' and uid:
+                    ms.site_subcategory_id = uid
+                    changed = True
+            if changed:
+                ms.save(update_fields=['site_category_id', 'site_subcategory_id'])
+                updated += 1
+        if updated:
+            logger.info(f"Backfill category IDs: {updated}")
 
     def _get_country(self, ms_product: MoySkladProduct) -> str:
         """Извлечь страну из raw_data['country']['name']."""

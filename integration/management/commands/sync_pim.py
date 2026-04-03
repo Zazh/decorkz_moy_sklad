@@ -19,5 +19,7 @@ class Command(BaseCommand):
             f"  Обновлено: {result['updated']}\n"
             f"  Пропущено: {result['skipped']}\n"
             f"  Ошибок: {result['errors']}\n"
+            f"  Архивных деактивировано: {result['archived_deactivated']}\n"
+            f"  Категорий деактивировано: {result['cats_deactivated']}\n"
             f"  Всего: {result['total']}"
         ))

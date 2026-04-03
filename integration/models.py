@@ -27,7 +27,9 @@ class MoySkladProduct(models.Model):
 
     # Категории для сайта (из доп. атрибутов МойСклад)
     site_category = models.CharField("Категория сайт", max_length=255, blank=True, default='')
+    site_category_id = models.CharField("ID категории сайт", max_length=255, blank=True, default='')
     site_subcategory = models.CharField("Подкатегория сайт", max_length=255, blank=True, default='')
+    site_subcategory_id = models.CharField("ID подкатегории сайт", max_length=255, blank=True, default='')
 
     # Сырые данные
     raw_data = models.JSONField("Полные данные из API", blank=True, null=True)

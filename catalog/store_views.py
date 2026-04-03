@@ -127,19 +127,24 @@ def _get_nav_categories():
         is_active=True
     ).annotate(
         product_count=Count('products', filter=Q(products__is_active=True))
+    ).filter(
+        product_count__gt=0
     ).order_by('sort_order', 'title')
 
-    cats = list(Category.objects.filter(
-        parent__isnull=True, is_active=True
-    ).prefetch_related(
-        Prefetch('children', queryset=children_qs, to_attr='active_children')
-    ).annotate(
-        product_count=Count(
-            'products', filter=Q(products__is_active=True)
-        ) + Count(
-            'children__products', filter=Q(children__products__is_active=True)
-        )
-    ).order_by('sort_order', 'title'))
+    cats = [
+        cat for cat in Category.objects.filter(
+            parent__isnull=True, is_active=True
+        ).prefetch_related(
+            Prefetch('children', queryset=children_qs, to_attr='active_children')
+        ).annotate(
+            product_count=Count(
+                'products', filter=Q(products__is_active=True), distinct=True
+            ) + Count(
+                'children__products', filter=Q(children__products__is_active=True), distinct=True
+            )
+        ).order_by('sort_order', 'title')
+        if cat.product_count > 0
+    ]
 
     cache.set('nav_categories', cats, CACHE_TTL)
     return cats

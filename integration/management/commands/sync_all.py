@@ -18,8 +18,7 @@ class Command(BaseCommand):
         steps = [
             ('sync_products', 'Загрузка товаров из МойСклад', {}),
             ('sync_brands', 'Синхронизация брендов', {}),
-            ('sync_site_categories', 'Создание категорий', {}),
-            ('sync_pim', 'Синхронизация PIM (Product)', {}),
+            ('sync_pim', 'Синхронизация PIM (Product + категории)', {}),
             ('sync_cards', 'Карточки контента + фото', {'no_images': options['no_images']}),
             ('sync_prices', 'Синхронизация цен', {}),
         ]

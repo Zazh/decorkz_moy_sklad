@@ -201,6 +201,10 @@ class AttributeDefinition(models.Model):
 
 class Category(models.Model):
     """Категории каталога"""
+    moysklad_id = models.CharField(
+        "ID в МойСклад", max_length=255, unique=True, null=True, blank=True,
+        help_text="UUID значения справочника customentity в МойСклад"
+    )
     title = models.CharField("Название", max_length=100)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     parent = models.ForeignKey(

@@ -38,18 +38,25 @@ class Command(BaseCommand):
 
                 # Извлечение доп. атрибутов (справочники customentity)
                 site_category = ''
+                site_category_id = ''
                 site_subcategory = ''
+                site_subcategory_id = ''
                 for attr in product_data.get('attributes', []):
                     attr_name = attr.get('name', '')
                     attr_value = attr.get('value')
                     if attr_name == 'Категория сайт' and attr_value:
                         if isinstance(attr_value, dict):
                             site_category = attr_value.get('name', '')
+                            # ID из последнего сегмента href
+                            href = attr_value.get('meta', {}).get('href', '')
+                            site_category_id = href.rsplit('/', 1)[-1] if href else ''
                         else:
                             site_category = str(attr_value).strip()
                     elif attr_name == 'Подкатегория сайт' and attr_value:
                         if isinstance(attr_value, dict):
                             site_subcategory = attr_value.get('name', '')
+                            href = attr_value.get('meta', {}).get('href', '')
+                            site_subcategory_id = href.rsplit('/', 1)[-1] if href else ''
                         else:
                             site_subcategory = str(attr_value).strip()
 
@@ -64,7 +71,9 @@ class Command(BaseCommand):
                     'external_code': product_data.get('externalCode'),
                     'path_name': product_data.get('pathName', ''),
                     'site_category': site_category,
+                    'site_category_id': site_category_id,
                     'site_subcategory': site_subcategory,
+                    'site_subcategory_id': site_subcategory_id,
                     'raw_data': product_data,
                 }
 
